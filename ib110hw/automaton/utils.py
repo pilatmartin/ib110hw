@@ -15,7 +15,11 @@ def automaton_to_graphviz(automaton: Union[NFA, DFA], path: str) -> None:
     """
     with open(path, "w") as file:
         file.write(
-            f"digraph G {{\n\t_init[shape=none]\n\t_init[label=\"\"]\n\t_init -> {automaton.initial_state}\n"
+            f"""digraph G {{
+                \t_init[shape=none]
+                \t_init[label=\"\"]
+                \t_init -> {automaton.initial_state}
+                """
         )
 
         for s_from in automaton.states:

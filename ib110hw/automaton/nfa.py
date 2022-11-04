@@ -117,20 +117,22 @@ class NFA(FA):
         Returns:
             bool: True if word is accepted, False otherwise.
         """
-        return self.__is_accepted_rec__(deepcopy(self), self.initial_state, word)
+        def is_accepted_rec(self, automaton: 'NFA', current_state: str, word: str) -> bool:
+            if not word:
+                return current_state in automaton.final_states
+
+            if not automaton.transitions[current_state][word[0]]:
+                return False
             
-    def __is_accepted_rec__(self, automaton: 'NFA', current_state: str, word: str) -> bool:
-        if not word:
-            return current_state in automaton.final_states
+            result = False
 
-        if not automaton.transitions[current_state][word[0]]:
-            return False
-        
-        result = False
+            for state in automaton.transitions[current_state][word[0]]:
+                tmp = deepcopy(automaton)
+                tmp.transitions[current_state][word[0]]
+                result = result or self.__is_accepted_rec__(tmp, state, word[1:])
 
-        for state in automaton.transitions[current_state][word[0]]:
-            tmp = deepcopy(automaton)
-            tmp.transitions[current_state][word[0]]
-            result = result or self.__is_accepted_rec__(tmp, state, word[1:])
+            return result
 
-        return result
+        return is_accepted_rec(deepcopy(self), self.initial_state, word)
+            
+
