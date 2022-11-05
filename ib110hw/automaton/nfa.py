@@ -1,6 +1,5 @@
 from typing import Dict, Set, Optional
-from .fa import FA
-from copy import deepcopy
+from fa import FA
 
 NFARule = Dict[str, Set[str]]
 NFATransitions = Dict[str, NFARule]
@@ -23,15 +22,30 @@ class NFA(FA):
 
     def __eq__(self, other: object) -> bool:
         """
-        Compares two NFAs. Automatons are equal when they accept the same language.
+        Automatons are equal when they accept the same language.
+        """
+        # TODO
+        return super().__eq__()
+
+    def __repr__(self) -> str:
+        # TODO
+        return super().__repr__()
+
+    def get_transition(self, state_from: str, symbol: str) -> Set[str]:
+        """Returns next possible states from the provided state by symbol.
 
         Args:
-            other (object): Object to compare the NFA with.
+            state_from (str): _description_
+            symbol (str): _description_
 
         Returns:
-            bool: True if automatons are equal, False otherwise.
+            Set[str]: Set of next states.
         """
-        raise NotImplemented()
+        if state_from not in self.transitions.keys() or \
+            symbol not in self.transitions[state_from].keys():
+            return set()
+
+        return self.transitions[state_from][symbol]
 
     def add_transition(self, state_from: str, state_to: str,
                        symbol: str) -> bool:
@@ -49,13 +63,19 @@ class NFA(FA):
         if not {state_from, state_to}.issubset(self.states):
             return False
 
-        if not self.transitions[state_from][symbol]:
+        transition = self.get_transition(state_from, symbol)
+
+        if not transition:
             self.transitions[state_from][symbol] = set()
 
-        if state_to in self.transitions[state_from][symbol]:
+        if state_to in transition:
             return False
 
+        if state_from not in self.transitions.keys():
+            self.transitions.add(state_from)
+
         self.transitions[state_from][symbol].add(state_to)
+
         return True
 
     def remove_transition(self, state_from: str, state_to: str,
@@ -71,15 +91,15 @@ class NFA(FA):
         Returns:
             bool: True if transition was successfully added, False otherwise
         """
-        if not self.transitions[state_from] or not self.transitions[
-                state_from][symbol]:
+        if not self.get_transition(state_from, symbol):
             return False
 
         del self.transitions[state_from][state_to]
+
         return True
 
     def add_state(self, state: bool, is_final: bool = False) -> bool:
-        if (super.add_state(state, is_final)):
+        if (super().add_state(state, is_final)):
             self.transitions[state] = {}
             return True
 
@@ -93,7 +113,7 @@ class NFA(FA):
             automaton (Union[NFA, DFA]): automaton to be updated
             state (str): state to be removed
         """
-        if not super.remove_state(state):
+        if not super().remove_state(state):
             return False
 
         for s in self.states:
@@ -117,22 +137,49 @@ class NFA(FA):
         Returns:
             bool: True if word is accepted, False otherwise.
         """
-        def is_accepted_rec(self, automaton: 'NFA', current_state: str, word: str) -> bool:
-            if not word:
-                return current_state in automaton.final_states
 
-            if not automaton.transitions[current_state][word[0]]:
+        def is_accepted_rec(current_state: str, word: str) -> bool:
+            if not word:
+                return current_state in self.final_states
+
+            if not self.get_transition(current_state, word[0]):
                 return False
-            
+
             result = False
 
-            for state in automaton.transitions[current_state][word[0]]:
-                tmp = deepcopy(automaton)
-                tmp.transitions[current_state][word[0]]
-                result = result or self.__is_accepted_rec__(tmp, state, word[1:])
+            for state in self.get_transition(current_state, word[0]):
+                result = result or is_accepted_rec(state, word[1:])
 
             return result
 
-        return is_accepted_rec(deepcopy(self), self.initial_state, word)
-            
+        return is_accepted_rec(self.initial_state, word)
 
+
+if __name__ == "__main__":
+    transitions: NFATransitions = {
+        "s1": {
+            "a": {"s1", "s2"},
+            "b": {"s1", "s3"},
+            "c": {"s1", "s4"},
+        },
+        "s2": {
+            "a": {"s2", "s5"},
+            "b": {"s2"},
+            "c": {"s2"},
+        },
+        "s3": {
+            "a": {"s3"},
+            "b": {"s3", "s5"},
+            "c": {"s3"},
+        },
+        "s4": {
+            "a": {"s4"},
+            "b": {"s4"},
+            "c": {"s4", "s5"},
+        },
+    }
+
+    nfa = NFA({"s1", "s2", "s3", "s4", "s5"}, {"a", "b", "c"}, "s1", {"s5"},
+              transitions)
+
+    print(nfa.is_accepted("caba"))

@@ -1,5 +1,5 @@
 from typing import Dict, Set, Optional
-from .fa import FA
+from fa import FA
 
 DFARule = Dict[str, str]
 DFATransitions = Dict[str, DFARule]
@@ -22,19 +22,28 @@ class DFA(FA):
 
     def __eq__(self, other: object) -> bool:
         """
-        Compares two DFAs. Automatons are equal when they accept the same language.
-
-        Args:
-            other (DFA): DFA to compare with
-
-        Returns:
-            bool: True if automatons are equal, False otherwise
+        Automatons are equal when they accept the same language.
         """
-        raise NotImplemented()
+        # TODO
+        return super().__eq__()
 
     def __repr__(self) -> str:
-
+        # TODO
         return super().__repr__()
+
+    def get_transition(self, state_from: str, symbol: str) -> str:
+        """Returns next state from the provided state by symbol.
+
+        Args:
+            state_from (str): _description_
+            symbol (str): _description_
+
+        Returns:
+            str: Next state if such transition exists, None otherwise.
+        """
+        if state_from in self.transitions.keys(
+        ) and symbol in self.transitions[state_from].keys():
+            return self.transitions[state_from][symbol]
 
     def add_transition(self, state_from: str, state_to: str,
                        symbol: str) -> bool:
@@ -53,7 +62,7 @@ class DFA(FA):
         if not {state_from, state_to}.issubset(self.states):
             return False
 
-        if not self.transitions[state_from][symbol]:
+        if not self.get_transition(state_from, symbol):
             self.transitions[state_from][symbol] = state_to
             return True
 
@@ -70,7 +79,7 @@ class DFA(FA):
         Returns:
             bool: True if the automaton contained such transition, False otherwise.
         """
-        if self.transitions[state_from][symbol]:
+        if self.get_transition(state_from, symbol):
             del self.transitions[state_from][symbol]
             return True
 
@@ -78,7 +87,7 @@ class DFA(FA):
 
     def add_state(self, state: str, is_final: bool = False) -> bool:
         """
-        Adds state to the automaton.
+        Adds a state to the automaton.
 
         Args:
             state (str): Name of the state to be added.
@@ -91,7 +100,7 @@ class DFA(FA):
 
     def remove_state(self, state) -> bool:
         """
-        Removes provided state from the automaton (from its states and transitions).
+        Removes the provided state from the automaton (from its states and transitions).
 
         Args:
             state (str): State to be removed.
@@ -125,10 +134,11 @@ class DFA(FA):
             bool: True if word is accepted, False otherwise.
         """
         current_state = self.initial_state
+
         for c in word:
-            if not self.transitions[current_state][c]:
+            if not self.get_transition(current_state, c):
                 return False
-            
+
             current_state = self.transitions[current_state][c]
 
         return current_state in self.final_states
