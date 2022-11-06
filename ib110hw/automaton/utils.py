@@ -1,7 +1,8 @@
-from typing import Union
+from typing import Union, Set, Deque
 from fa import FA
 from nfa import NFA, NFATransitions
 from dfa import DFA, DFATransitions
+from collections import deque
 
 
 def automaton_to_graphviz(automaton: Union[NFA, DFA], path: str) -> None:
@@ -54,7 +55,40 @@ def determinize(automaton: NFA) -> DFA:
     Returns:
         DFA: Determinized automaton
     """
-    raise NotImplemented()
+    states: Deque[Set[str]] = deque()
+    states.append({automaton.initial_state})
+
+    det_states: Set[str] = set()
+    det_final_states: Set[str] = set()
+    det_transitions = {automaton.initial_state: {}}
+
+    while states:
+        state = states.popleft()
+        str_state = "".join(sorted(state))
+
+        if str_state in det_states:
+            continue
+
+        det_states.add(str_state)
+        det_transitions[str_state] = {}
+
+        if automaton.final_states.intersection(state):
+            det_final_states.add(str_state)
+                
+        for key in automaton.alphabet:
+            new_state = set()
+            for s in state:
+                new_state = new_state.union(automaton.get_transition(s, key))
+
+            det_transitions[str_state][key] = "".join(sorted(new_state))    
+            states.append(new_state)
+    
+    return DFA(
+        states=det_states, 
+        alphabet=automaton.alphabet, 
+        final_states=det_final_states,
+        initial_state=automaton.initial_state,
+        transitions=det_transitions)
 
 
 def remove_empty_transitions(automaton: NFA) -> None:
@@ -78,81 +112,101 @@ def minimalize(automaton: FA) -> None:
 
 
 def main() -> None:
-    # NFA that accepts only 'a(b*a*)*a'
-    transitions_abba: NFATransitions = {
-        "s1": {
-            "a": {"s2"},
+    # # NFA that accepts only 'a(b*a*)*a'
+    # transitions_abba: NFATransitions = {
+    #     "s1": {
+    #         "a": {"s2"},
+    #     },
+    #     "s2": {
+    #         "a": {"s2"},
+    #         "b": {"s3"},
+    #     },
+    #     "s3": {
+    #         "a": {"s2"},
+    #         "b": {"s3"}
+    #     }
+    # }
+
+
+
+    # abba = NFA(alphabet={"a", "b"},
+    #                 states={"s1", "s2", "s3"},
+    #                 initial_state="s1",
+    #                 final_states={"s2"},
+    #                 transitions=transitions_abba
+    #                 )
+
+    # # Switches DFA (hw1)
+    # transitions_switches: DFATransitions = {
+    #     "s1": {
+    #         "a": "s3",
+    #         "b": "s1",
+    #         "c": "s2",
+    #     },
+    #     "s2": {
+    #         "a": "s5",
+    #         "b": "s1",
+    #         "c": "s2",
+    #     },
+    #     "s3": {
+    #         "a": "s3",
+    #         "b": "s1",
+    #         "c": "s6",
+    #     },
+    #     "s4": {
+    #         "a": "s3",
+    #         "b": "s7",
+    #         "c": "s2",
+    #     },
+    #     "s5": {
+    #         "a": "s5",
+    #         "b": "s7",
+    #         "c": "s2",
+    #     },
+    #     "s6": {
+    #         "a": "s3",
+    #         "b": "s7",
+    #         "c": "s6",
+    #     },
+    #     "s7": {
+    #         "a": "s5",
+    #         "b": "s7",
+    #         "c": "s6",
+    #     },
+    # }
+
+    # switches = DFA(
+    #     alphabet={"a", "b", "c"}, 
+    #     final_states={"s2", "s3", "s4", "s7"}, 
+    #     initial_state="s4", 
+    #     states={"s1", "s2", "s3", "s4", "s5", "s6", "s7"},
+    #     transitions=transitions_switches
+    #     )
+    
+    # automaton_to_graphviz(abba, r"C:\Skola\SBAPR\abba.dot")
+    # print(abba.is_accepted("abaaababababababababababababaaba"))
+    # automaton_to_graphviz(switches, r"C:\Skola\SBAPR\switches.dot")
+    # print(switches.is_accepted("cabbacac"))
+
+    transitions = {
+        "0": {
+            "a": {"1", "2"},
         },
-        "s2": {
-            "a": {"s2"},
-            "b": {"s3"},
+        "1": {
+            "a": {"1", "2"},
+            "b": {"3"},
         },
-        "s3": {
-            "a": {"s2"},
-            "b": {"s3"}
+        "2": {
+            "a": {"0", "3"},
+            "b": {"3"},
+        },
+        "3": {
+            "a": {"2", "3"},
+            "b": {"3"},
         }
     }
 
-
-
-    abba = NFA(alphabet={"a", "b"},
-                    states={"s1", "s2", "s3"},
-                    initial_state="s1",
-                    final_states={"s2"},
-                    transitions=transitions_abba
-                    )
-
-    # Switches DFA (hw1)
-    transitions_switches: DFATransitions = {
-        "s1": {
-            "a": "s3",
-            "b": "s1",
-            "c": "s2",
-        },
-        "s2": {
-            "a": "s5",
-            "b": "s1",
-            "c": "s2",
-        },
-        "s3": {
-            "a": "s3",
-            "b": "s1",
-            "c": "s6",
-        },
-        "s4": {
-            "a": "s3",
-            "b": "s7",
-            "c": "s2",
-        },
-        "s5": {
-            "a": "s5",
-            "b": "s7",
-            "c": "s2",
-        },
-        "s6": {
-            "a": "s3",
-            "b": "s7",
-            "c": "s6",
-        },
-        "s7": {
-            "a": "s5",
-            "b": "s7",
-            "c": "s6",
-        },
-    }
-
-    switches = DFA(
-        alphabet={"a", "b", "c"}, 
-        final_states={"s2", "s3", "s4", "s7"}, 
-        initial_state="s4", 
-        states={"s1", "s2", "s3", "s4", "s5", "s6", "s7"},
-        transitions=transitions_switches
-        )
-    
-    automaton_to_graphviz(abba, r"C:\Skola\SBAPR\abba.dot")
-    print(abba.is_accepted("abaaababababababababababababaaba"))
-    automaton_to_graphviz(switches, r"C:\Skola\SBAPR\switches.dot")
-    print(switches.is_accepted("cabbacac"))
-
+    det_test = NFA(states={"0", "1", "2", "3"}, alphabet={"a", "b"}, initial_state="0", final_states={"1", "2"}, transitions=transitions)
+    print(determinize(det_test))
 if __name__ == "__main__":
     main()

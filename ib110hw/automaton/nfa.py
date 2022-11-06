@@ -155,6 +155,7 @@ class NFA(FA):
         return is_accepted_rec(self.initial_state, word)
 
 
+
 if __name__ == "__main__":
     transitions: NFATransitions = {
         "s1": {
