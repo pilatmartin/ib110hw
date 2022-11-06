@@ -28,8 +28,7 @@ class NFA(FA):
         return super().__eq__()
 
     def __repr__(self) -> str:
-        # TODO
-        return super().__repr__()
+        return super().__repr__() + "\n" + self.__repr_transitions__("NFA")
 
     def get_transition(self, state_from: str, symbol: str) -> Set[str]:
         """Returns next possible states from the provided state by symbol.
@@ -41,11 +40,7 @@ class NFA(FA):
         Returns:
             Set[str]: Set of next states.
         """
-        if state_from not in self.transitions.keys() or \
-            symbol not in self.transitions[state_from].keys():
-            return set()
-
-        return self.transitions[state_from][symbol]
+        return self.transitions.get(state_from, {}).get(symbol, set())
 
     def add_transition(self, state_from: str, state_to: str,
                        symbol: str) -> bool:
@@ -157,30 +152,4 @@ class NFA(FA):
 
 
 if __name__ == "__main__":
-    transitions: NFATransitions = {
-        "s1": {
-            "a": {"s1", "s2"},
-            "b": {"s1", "s3"},
-            "c": {"s1", "s4"},
-        },
-        "s2": {
-            "a": {"s2", "s5"},
-            "b": {"s2"},
-            "c": {"s2"},
-        },
-        "s3": {
-            "a": {"s3"},
-            "b": {"s3", "s5"},
-            "c": {"s3"},
-        },
-        "s4": {
-            "a": {"s4"},
-            "b": {"s4"},
-            "c": {"s4", "s5"},
-        },
-    }
-
-    nfa = NFA({"s1", "s2", "s3", "s4", "s5"}, {"a", "b", "c"}, "s1", {"s5"},
-              transitions)
-
-    print(nfa.is_accepted("caba"))
+    pass

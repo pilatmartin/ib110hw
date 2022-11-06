@@ -17,7 +17,8 @@ TransitionFunction = Dict[Tuple[str, str], Tuple[str, str, Direction]]
 
 
 class Cell:
-
+    """Represents one cell of a Turing machine memory tape.
+    """
     def __init__(self,
                  value: str = "",
                  right: 'Cell' = None,
@@ -31,7 +32,8 @@ class Cell:
 
 
 class Tape():
-
+    """Represents Turing machine memory tape as a linked list.
+    """
     def __init__(self, start: Cell = Cell()):
         self.start = start
         self.current = start
@@ -265,6 +267,7 @@ class TuringMachine():
 
 
 if __name__ == "__main__":
+    # (current state, read) -> (next state, write, direction)
     fn: TransitionFunction = {
         ("init", ">"): ("findA", ">", Direction.RIGHT),
         ("space", "a"): ("writeA", "", Direction.RIGHT),
@@ -290,13 +293,17 @@ if __name__ == "__main__":
     turing = TuringMachine(
         states={"init", "space", "writeA", "writeB", "findA", "back"},
         acc_states={"finish"},
+        rej_states=set(),
         initial_state="init",
         input_alphabet={"a", "b", "c"},
         tape=tape_,
         transition_function=fn)
 
-    print(turing.simulate(delay=.05))
+    print(turing.simulate(delay=.2), "\n")
+
+    input("Press any key to continue")
 
     tape_.clear()
     tape_.write(">abbaaabababababaa")
+    turing.max_steps = 200
     print(turing.simulate(delay=.05))

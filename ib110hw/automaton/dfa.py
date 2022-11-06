@@ -28,26 +28,7 @@ class DFA(FA):
         return super().__eq__()
 
     def __repr__(self) -> str:
-        # TODO make it look like a sane person wrote it
-        
-        header = f"{' '*10}|"
-        for letter in sorted(self.alphabet):
-            header += f"{letter: ^10}|"
-
-        rows = ""
-        for state in self.states:
-            row_prefix = '-> ' if state == self.initial_state else '<- ' if state in self.final_states else '   '
-            rows += f"{row_prefix}{state if state else 'empty': <7}"
-
-            for letter in sorted(self.alphabet):
-                transition = self.get_transition(state, letter)
-                rows += f"|{transition if transition else 'empty': <10}"
-
-            rows += "\n"
-
-        divider = "-" * rows.index("\n")
-
-        return f"{super().__repr__()}\n{header[:-1]}\n{divider}\n{rows}"
+        return super().__repr__() + "\n" + self.__repr_transitions__("DFA")
 
     def get_transition(self, state_from: str, symbol: str) -> str:
         """Returns next state from the provided state by symbol.
@@ -160,3 +141,6 @@ class DFA(FA):
             current_state = self.transitions[current_state][c]
 
         return current_state in self.final_states
+
+if __name__ == "__main__":
+    pass
