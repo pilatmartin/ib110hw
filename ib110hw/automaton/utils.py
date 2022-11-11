@@ -160,6 +160,9 @@ def dfa_demo():
     automaton_to_graphviz(switches, r"C:\Skola\SBAPR\dfa_demo_switches.dot")
     print(f"Is '{test_word}' accepted:", switches.is_accepted(test_word))
 
+    switches.add_state("s8")
+    print(switches)
+
 
 def nfa_demo():
     # NFA: last letter occurs at least twice

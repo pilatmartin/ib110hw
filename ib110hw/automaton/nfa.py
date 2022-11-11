@@ -17,15 +17,10 @@ class NFA(FA):
                  final_states: Set[str],
                  transitions: Optional[NFATransitions] = {}):
         super().__init__(states, alphabet, initial_state, final_states)
-        assert set(transitions.keys()).issubset(states)
-        self.transitions = transitions
 
-    def __eq__(self, other: object) -> bool:
-        """
-        Automatons are equal when they accept the same language.
-        """
-        # TODO
-        return super().__eq__()
+        assert set(transitions.keys()).issubset(states)
+        
+        self.transitions = transitions
 
     def __repr__(self) -> str:
         return super().__repr__() + "\n" + self.__repr_transitions__("NFA")

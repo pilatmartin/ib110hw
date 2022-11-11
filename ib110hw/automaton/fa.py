@@ -1,5 +1,6 @@
 from typing import Set
 
+
 class FA:
     """
     Finite Automaton
@@ -7,28 +8,33 @@ class FA:
 
     def __init__(self, states: Set[str], alphabet: Set[str],
                  initial_state: str, final_states: Set[str]) -> None:
-        assert initial_state in states
-        assert final_states.issubset(states)
+        assert len(states) > 0, "Automaton has to have at least one state"
+        assert len(
+            final_states) > 0, "Automaton has to have at least one final state"
+        assert initial_state in states, "The initial state has to be a part of the states set"
+        assert final_states.issubset(
+            states), "All final states have to be part of the states set"
 
         self.states = states
         self.alphabet = alphabet
         self.initial_state = initial_state
         self.final_states = final_states
-    
+
     def __repr__(self) -> str:
         alphabet_str = ",".join(self.alphabet)
         states_str = ",".join(self.states)
         final_states_str = ",".join(self.final_states)
-        
+
         return f"alphabet: {alphabet_str}\nstates: {states_str}\nfinal states: {final_states_str}\n"
 
     def __repr_transitions__(self, automaton_type: str) -> str:
+
         def get_row_prefix(state):
             if state == self.initial_state:
                 return "-> "
             elif state in self.final_states:
                 return "<- "
-            
+
             return "   "
 
         header = f"{automaton_type: ^10}|"
@@ -42,7 +48,8 @@ class FA:
 
             for letter in sorted(self.alphabet):
                 transition = self.get_transition(state, letter)
-                transition_str = transition if automaton_type == "DFA" else ",".join(transition)
+                transition_str = transition if automaton_type == "DFA" else ",".join(
+                    transition)
                 rows += f"|{transition_str or 'empty': ^10}"
 
             rows += "\n"
@@ -70,3 +77,7 @@ class FA:
 
         self.states.remove(state)
         return True
+
+
+if __name__ == "__main__":
+    pass
