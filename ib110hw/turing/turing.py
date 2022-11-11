@@ -13,7 +13,7 @@ class Direction(Enum):
         return self.name
 
 
-TransitionFunction = Dict[Tuple[str, str], Tuple[str, str, Direction]]
+TransitionFunction = Dict[str, Dict[str, Tuple[str, str, Direction]]]
 
 
 class Cell:
@@ -140,6 +140,9 @@ class TuringMachine():
         # Change this value for more complex scenarios.
         self.max_steps = 100
 
+    def get_transition(self, state: str, read: str) -> Tuple[str, str, Direction]:
+        return self.transition_function.get(state, {}).get(read, None) 
+
     def add_state(self,
                   state: str,
                   is_acc: bool = False,
@@ -186,9 +189,14 @@ class TuringMachine():
 
         self.states.remove(state)
 
-        for key, value in self.transition_function:
-            if key[0] == state or value[0] == state:
-                del self.transition_function[key]
+        for state in self.transition_function:
+            if state in self.transition_function.keys():
+                del self.transition_function[state]
+
+            for read in self.transition_function[state]:
+                next_s, _, _ = self.transition_function[state][read]
+                if next_s == state:
+                    del self.transition_function[state][read]
 
         return True
 
@@ -214,7 +222,7 @@ class TuringMachine():
         output_file = None
 
         def print_automaton_state():
-            row = self.transition_function.get((state, self.tape.current.value))
+            row = self.get_transition(state, self.tape.current.value)
             rule_str = f"{steps if row else steps-1}. {(state, self.tape.current.value)} -> {row}\n"
 
             if output_file:
@@ -224,8 +232,8 @@ class TuringMachine():
 
             if to_console:
                 system("cls")
-                print(rule_str)
-                print(self.tape)
+                print(rule_str, "\n", self.tape)
+
                 sleep(delay)
 
         def close():
@@ -244,8 +252,7 @@ class TuringMachine():
                 close()
                 return True
 
-            rule = self.transition_function.get(
-                (state, self.tape.current.value))
+            rule = self.get_transition(state, self.tape.current.value)
 
             if not rule or rule[0] in self.rej_states:
                 close()
@@ -258,7 +265,7 @@ class TuringMachine():
 
         close()
 
-        print(f"Exceeded the maximum steps allowed. ({self.max_steps})")
+        print(f"Exceeded the maximum allowed steps. ({self.max_steps})")
         print(
             "You change the default value by setting the 'max_steps' property of this automaton."
         )
@@ -267,24 +274,35 @@ class TuringMachine():
 
 
 if __name__ == "__main__":
-    # (current state, read) -> (next state, write, direction)
     fn: TransitionFunction = {
-        ("init", ">"): ("findA", ">", Direction.RIGHT),
-        ("space", "a"): ("writeA", "", Direction.RIGHT),
-        ("space", "b"): ("writeB", "", Direction.RIGHT),
-        ("space", ""): ("finish", "c", Direction.STAY),
-        ("writeA", "a"): ("writeA", "a", Direction.RIGHT),
-        ("writeA", "b"): ("writeB", "a", Direction.RIGHT),
-        ("writeA", ""): ("back", "a", Direction.STAY),
-        ("writeB", "a"): ("writeA", "b", Direction.RIGHT),
-        ("writeB", "b"): ("writeB", "b", Direction.RIGHT),
-        ("writeB", ""): ("back", "b", Direction.STAY),
-        ("findA", "a"): ("space", "c", Direction.RIGHT),
-        ("findA", "b"): ("findA", "b", Direction.RIGHT),
-        ("findA", ""): ("finish", "", Direction.STAY),
-        ("back", "a"): ("back", "a", Direction.LEFT),
-        ("back", "b"): ("back", "b", Direction.LEFT),
-        ("back", ""): ("findA", "c", Direction.RIGHT),
+        "init": {
+            ">": ("findA", ">", Direction.RIGHT)
+            },
+        "space": {
+            "a": ("writeA", "", Direction.RIGHT),
+            "b": ("writeB", "", Direction.RIGHT),
+            "": ("finish", "c", Direction.STAY),
+        },
+        "writeA": {
+            "a": ("writeA", "a", Direction.RIGHT),
+            "b": ("writeB", "a", Direction.RIGHT),
+            "": ("back", "a", Direction.STAY),
+        },
+        "writeB": {
+            "a": ("writeA", "b", Direction.RIGHT),
+            "b": ("writeB", "b", Direction.RIGHT),
+            "": ("back", "b", Direction.STAY),
+        },
+        "findA": {
+            "a": ("space", "c", Direction.RIGHT),
+            "b": ("findA", "b", Direction.RIGHT),
+            "": ("finish", "", Direction.STAY),
+        },
+        "back": {
+            "a": ("back", "a", Direction.LEFT),
+            "b": ("back", "b", Direction.LEFT),
+            "": ("findA", "c", Direction.RIGHT),
+        }
     }
 
     tape_ = Tape()
