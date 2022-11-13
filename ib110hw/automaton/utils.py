@@ -1,4 +1,4 @@
-from typing import Union, Set, Deque
+from typing import Union, Set, Deque, Dict
 from fa import FA
 from nfa import NFA, NFATransitions
 from dfa import DFA, DFATransitions
@@ -98,36 +98,37 @@ def remove_empty_transitions(automaton: NFA) -> NFA:
     if "" not in automaton.alphabet:
         return automaton
 
-    next1 = {}
+    next1: Dict[str, Set[str]] = {}
     transitions: NFATransitions = {}
 
-    result = NFA(
+    result: NFA = NFA(
         states=automaton.states,
-        alphabet=automaton.states.difference({""}),
+        alphabet=automaton.alphabet.difference({""}),
         initial_state=automaton.initial_state,
         final_states=automaton.final_states,
         transitions=transitions
     )
 
-    #
-    for state in automaton.transitions.keys():
+    # next1
+    for state in automaton.transitions:
         next1[state] = {state}.union(automaton.get_transition(state, ""))
 
-    print("next1\n", next1)
+        for next_state in automaton.get_transition(state, ""):
+            next1[state] = next1[state].union(next1[next_state])
 
-    # Work in progress
-    for state in next1.keys():
-        if state not in transitions.keys():
-            transitions[state] = {}
+    # next2
+    for state in next1:
+        for symbol in result.alphabet:
+            for next_state in next1[state]:
+                result.add_transition(state, automaton.get_transition(next_state, symbol), symbol)
 
-        for symbol in transitions[state]:
-            if not result.get_transition(state, symbol):
-                transitions[state][symbol] = set()
+    # next3
+    for state in result.transitions:
+        for symbol in result.alphabet:
+            next2_transition = {*result.get_transition(state, symbol)}
 
-            for s in next1[state]:
-                transitions[state][symbol] = transitions[state][symbol].union(automaton.get_transition(s, symbol))
-
-    print(result)
+            for next_state in next2_transition:
+                result.add_transition(state, next1[next_state], symbol)
 
     return result
 

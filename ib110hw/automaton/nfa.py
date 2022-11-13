@@ -37,34 +37,34 @@ class NFA(FA):
         """
         return self.transitions.get(state_from, {}).get(symbol, set())
 
-    def add_transition(self, state_from: str, state_to: str,
+    def add_transition(self, state_from: str, states_to: Set[str],
                        symbol: str) -> bool:
         """
         Adds transition to the automaton and returns bool based on success.
 
         Args:
             state_from (str): _description_
-            state_to (str): _description_
+            states_to (Set[str]): _description_
             symbol (str): _description_
         
         Returns:
             bool: True if transition was successfully added, False otherwise.
         """
-        if not {state_from, state_to}.issubset(self.states):
+        if not {state_from, *states_to}.issubset(self.states):
             return False
+
+        if state_from not in self.transitions.keys():
+            self.transitions[state_from] = {}
 
         transition = self.get_transition(state_from, symbol)
 
         if not transition:
             self.transitions[state_from][symbol] = set()
 
-        if state_to in transition:
+        if not states_to.difference(transition):
             return False
 
-        if state_from not in self.transitions.keys():
-            self.transitions[state_from] = {}
-
-        self.transitions[state_from][symbol].add(state_to)
+        self.transitions[state_from][symbol].update(*states_to)
 
         return True
 
