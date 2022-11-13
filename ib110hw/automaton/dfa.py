@@ -57,7 +57,7 @@ class DFA(FA):
         Returns:
             bool: True if transition was added, False otherwise.
         """
-        if not {state_from, state_to}.issubset(self.states):
+        if not {state_from, state_to}.issubset(self.states) or symbol not in self.alphabet:
             return False
 
         if not self.get_transition(state_from, symbol):
@@ -114,7 +114,7 @@ class DFA(FA):
             rules = self.transitions[s].values()
             all_states = rules.values()
 
-            if (state not in all_states):
+            if state not in all_states:
                 continue
 
             rules.pop({k for k in rules.keys() if rules[k] == state}, None)

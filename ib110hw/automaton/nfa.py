@@ -48,7 +48,7 @@ class NFA(FA):
             symbol (str): _description_
         
         Returns:
-            bool: True if transition was successfuly added, False otherwise.
+            bool: True if transition was successfully added, False otherwise.
         """
         if not {state_from, state_to}.issubset(self.states):
             return False
@@ -62,7 +62,7 @@ class NFA(FA):
             return False
 
         if state_from not in self.transitions.keys():
-            self.transitions.add(state_from)
+            self.transitions[state_from] = {}
 
         self.transitions[state_from][symbol].add(state_to)
 
@@ -88,19 +88,18 @@ class NFA(FA):
 
         return True
 
-    def add_state(self, state: bool, is_final: bool = False) -> bool:
-        if (super().add_state(state, is_final)):
+    def add_state(self, state: str, is_final: bool = False) -> bool:
+        if super().add_state(state, is_final):
             self.transitions[state] = {}
             return True
 
         return False
 
-    def remove_state(self, state) -> None:
+    def remove_state(self, state: str) -> bool:
         """
         Removes provided state from the automaton (from its states and transitions)
 
         Args:
-            automaton (Union[NFA, DFA]): automaton to be updated
             state (str): state to be removed
         """
         if not super().remove_state(state):
@@ -110,10 +109,11 @@ class NFA(FA):
             rules = self.transitions[s]
             all_states = set().union(*rules.values())
 
-            if (state not in all_states):
+            if state not in all_states:
                 continue
 
-            rules[{k for k in rules.keys() if state in rules[k]}].remove(state)
+            for k in rules.keys():
+                rules[k].remove(state)
 
         return True
 
@@ -128,22 +128,21 @@ class NFA(FA):
             bool: True if word is accepted, False otherwise.
         """
 
-        def is_accepted_rec(current_state: str, word: str) -> bool:
-            if not word:
+        def is_accepted_rec(current_state: str, curr_word: str) -> bool:
+            if not curr_word:
                 return current_state in self.final_states
 
-            if not self.get_transition(current_state, word[0]):
+            if not self.get_transition(current_state, curr_word[0]):
                 return False
 
             result = False
 
-            for state in self.get_transition(current_state, word[0]):
-                result = result or is_accepted_rec(state, word[1:])
+            for state in self.get_transition(current_state, curr_word[0]):
+                result = result or is_accepted_rec(state, curr_word[1:])
 
             return result
 
         return is_accepted_rec(self.initial_state, word)
-
 
 
 if __name__ == "__main__":

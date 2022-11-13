@@ -39,7 +39,7 @@ class FA:
 
         header = f"{automaton_type: ^10}|"
         for letter in sorted(self.alphabet):
-            header += f"{letter: ^10}|"
+            header += f"{letter if letter else 'ε': ^10}|"
 
         rows = ""
         for state in sorted(self.states):
@@ -59,7 +59,7 @@ class FA:
         return "\n".join([header[:-1], divider, rows])
 
     def add_state(self, state: str, is_final: bool = False) -> bool:
-        if (state in self.states):
+        if state in self.states:
             return False
 
         if is_final:

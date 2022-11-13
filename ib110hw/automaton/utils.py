@@ -24,7 +24,7 @@ def automaton_to_graphviz(automaton: Union[NFA, DFA], path: str) -> None:
                 transitions = automaton.transitions
 
                 if s_from not in transitions or symbol not in transitions[
-                        s_from]:
+                    s_from]:
                     continue
 
                 if not (s_to := automaton.get_transition(s_from, symbol)):
@@ -51,6 +51,8 @@ def determinize(automaton: NFA) -> DFA:
     Returns:
         DFA: Determinized automaton
     """
+    remove_empty_transitions(automaton)
+
     states: Deque[Set[str]] = deque()
     states.append({automaton.initial_state})
 
@@ -86,14 +88,48 @@ def determinize(automaton: NFA) -> DFA:
                transitions=det_transitions)
 
 
-def remove_empty_transitions(automaton: NFA) -> None:
+def remove_empty_transitions(automaton: NFA) -> NFA:
     """
     Removes all epsilon (ε) transitions.
 
     Args:
         automaton (NFA): Automaton to be updated
     """
-    raise NotImplemented()
+    if "" not in automaton.alphabet:
+        return automaton
+
+    next1 = {}
+    transitions: NFATransitions = {}
+
+    result = NFA(
+        states=automaton.states,
+        alphabet=automaton.states.difference({""}),
+        initial_state=automaton.initial_state,
+        final_states=automaton.final_states,
+        transitions=transitions
+    )
+
+    #
+    for state in automaton.transitions.keys():
+        next1[state] = {state}.union(automaton.get_transition(state, ""))
+
+    print("next1\n", next1)
+
+    # Work in progress
+    for state in next1.keys():
+        if state not in transitions.keys():
+            transitions[state] = {}
+
+        for symbol in transitions[state]:
+            if not result.get_transition(state, symbol):
+                transitions[state][symbol] = set()
+
+            for s in next1[state]:
+                transitions[state][symbol] = transitions[state][symbol].union(automaton.get_transition(s, symbol))
+
+    print(result)
+
+    return result
 
 
 def minimalize(automaton: FA) -> None:
@@ -147,10 +183,10 @@ def dfa_demo():
         },
     }
 
-    switches = DFA(alphabet={"a", "b", "c"},
+    switches = DFA(alphabet={"a", "b", "c", "d"},
                    final_states={"s2", "s3", "s4", "s7"},
                    initial_state="s4",
-                   states={"s1", "s2", "s3", "s4", "s5", "s6", "s7"},
+                   states={"s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8"},
                    transitions=transitions_switches)
 
     test_word = "cabbacac"
@@ -162,6 +198,14 @@ def dfa_demo():
 
     switches.add_state("s8")
     print(switches)
+
+    print(switches.add_transition("s7", "s8", "d"))
+    print(switches)
+    print(switches.add_transition("s7", "s8", "d"))
+    automaton_to_graphviz(switches, r"C:\Skola\SBAPR\dfa_demo_switches2.dot")
+
+    print(switches.remove_transition("s7", "d"))
+    print(switches.remove_transition("s7", "d"))
 
 
 def nfa_demo():
@@ -265,6 +309,26 @@ def nfa_demo():
     print("After determinization")
     print(determinize(det_test))
 
+    empty_t = {
+        "0": {
+            "a": {"1"}
+        },
+        "1": {
+            "b": {"2"},
+            "": {"0"},
+        },
+        "2": {
+            "a": {"2"},
+            "": {"1"},
+        }
+    }
+
+    nfa_empty_t = NFA({"0", "1", "2"}, {"a", "b", ""}, "0", {"2"}, empty_t)
+
+    print(nfa_empty_t)
+
+    print(remove_empty_transitions(nfa_empty_t))
+
 
 if __name__ == "__main__":
-    dfa_demo()
+    nfa_demo()
