@@ -9,8 +9,6 @@ class FA:
     def __init__(self, states: Set[str], alphabet: Set[str],
                  initial_state: str, final_states: Set[str]) -> None:
         assert len(states) > 0, "Automaton has to have at least one state"
-        assert len(
-            final_states) > 0, "Automaton has to have at least one final state"
         assert initial_state in states, "The initial state has to be a part of the states set"
         assert final_states.issubset(
             states), "All final states have to be part of the states set"
@@ -69,7 +67,9 @@ class FA:
         return True
 
     def remove_state(self, state) -> bool:
-        if state == self.initial_state or state not in self.states:
+        # automaton would be without the initial state,
+        # without states, or no such state exists
+        if state == self.initial_state or state not in self.states or len(self.states) == 1:
             return False
 
         if state in self.final_states:

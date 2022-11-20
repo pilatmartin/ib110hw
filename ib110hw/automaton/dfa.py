@@ -20,9 +20,10 @@ class DFA(FA):
         assert set(transitions.keys()).issubset(
             states
         ), "All states in the transitions have to be part of the 'states' set."
+        assert "" not in alphabet, "DFAs alphabet cannot contain empty symbol (ε)."
         assert set().union(
             *[{*transitions[k].keys()} for k in transitions.keys()]).issubset(
-                alphabet), "All symbols in the transitions have to be part of the alphabet."
+            alphabet), "All symbols in the transitions have to be part of the alphabet."
 
         self.transitions = transitions
 
@@ -39,9 +40,7 @@ class DFA(FA):
         Returns:
             str: Next state if such transition exists, None otherwise.
         """
-        if state_from in self.transitions.keys(
-        ) and symbol in self.transitions[state_from].keys():
-            return self.transitions[state_from][symbol]
+        return self.transitions.get(state_from, {}).get(symbol, None)
 
     def add_transition(self, state_from: str, state_to: str,
                        symbol: str) -> bool:
@@ -57,10 +56,13 @@ class DFA(FA):
         Returns:
             bool: True if transition was added, False otherwise.
         """
-        if not {state_from, state_to}.issubset(self.states) or symbol not in self.alphabet:
+        if not {state_from, state_to}.issubset(self.states) or not symbol or symbol not in self.alphabet:
             return False
 
         if not self.get_transition(state_from, symbol):
+            if state_from not in self.transitions.keys():
+                self.transitions[state_from] = {}
+
             self.transitions[state_from][symbol] = state_to
             return True
 
@@ -111,13 +113,12 @@ class DFA(FA):
             return False
 
         for s in self.states:
-            rules = self.transitions[s].values()
-            all_states = rules.values()
-
-            if state not in all_states:
+            if s not in self.transitions:
                 continue
 
-            rules.pop({k for k in rules.keys() if rules[k] == state}, None)
+            for symbol in self.transitions[s]:
+                if self.transitions[s][symbol] == state:
+                    del self.transitions[s][symbol]
 
         return True
 

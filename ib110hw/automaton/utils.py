@@ -1,4 +1,4 @@
-from typing import Union, Set, Deque, Dict
+from typing import Union, Set, Deque, Dict, List
 from fa import FA
 from nfa import NFA, NFATransitions
 from dfa import DFA, DFATransitions
@@ -23,8 +23,7 @@ def automaton_to_graphviz(automaton: Union[NFA, DFA], path: str) -> None:
             for symbol in automaton.alphabet:
                 transitions = automaton.transitions
 
-                if s_from not in transitions or symbol not in transitions[
-                    s_from]:
+                if s_from not in transitions or symbol not in transitions[s_from]:
                     continue
 
                 if not (s_to := automaton.get_transition(s_from, symbol)):
@@ -51,7 +50,7 @@ def determinize(automaton: NFA) -> DFA:
     Returns:
         DFA: Determinized automaton
     """
-    remove_empty_transitions(automaton)
+    automaton = remove_empty_transitions(automaton)
 
     states: Deque[Set[str]] = deque()
     states.append({automaton.initial_state})
@@ -94,6 +93,9 @@ def remove_empty_transitions(automaton: NFA) -> NFA:
 
     Args:
         automaton (NFA): Automaton to be updated
+
+    Returns:
+        NFA: Equivalent automaton without ε transitions.
     """
     if "" not in automaton.alphabet:
         return automaton
@@ -133,14 +135,132 @@ def remove_empty_transitions(automaton: NFA) -> NFA:
     return result
 
 
-def minimalize(automaton: FA) -> None:
+# rewrite
+def minimize(automaton: DFA) -> DFA:
     """
-    Minimalizes the provided automaton. 
+    Returns a minimized version of the provided automaton.
 
     Args:
-        automaton (FA): Automaton to be minimalized
+        automaton (FA): Automaton to be minimized
+
+    Returns:
+        DFA: Minimized version of the provided automaton.
     """
-    raise NotImplemented()
+
+    def get_groups(_transitions: DFATransitions) -> List[Set[str]]:
+        new_groups = {}
+
+        for g_index, _group in enumerate(groups):
+            for _state in _group:
+                # group key is prefixed with index
+                # to distinguish the same transitions from different groups
+                group_key = f"{g_index}_"
+                if _state not in _transitions.keys():
+                    continue
+
+                for _symbol in automaton.alphabet:
+                    if _symbol not in _transitions[_state].keys():
+                        continue
+
+                    if transition := _transitions[_state][_symbol]:
+                        group_key += transition
+
+                if group_key not in new_groups.keys():
+                    new_groups[group_key] = set()
+
+                new_groups[group_key].add(_state)
+
+        return list(new_groups.values())
+
+    minimized_transitions = {}
+
+    result: DFA = DFA(
+        automaton.states,
+        automaton.alphabet,
+        automaton.initial_state,
+        set(),
+        transitions=minimized_transitions
+    )
+    groups: List[Set[str]] = [
+        automaton.final_states,
+        automaton.states.difference(automaton.final_states)
+    ]
+
+    while True:
+        # create transitions with group indexes instead of states
+        # break when nothing changes
+        marked_transitions = {}
+
+        for state in automaton.transitions:
+            for symbol in automaton.alphabet:
+                for index, group in enumerate(groups):
+                    if automaton.get_transition(state, symbol) not in group:
+                        continue
+
+                    if state not in marked_transitions.keys():
+                        marked_transitions[state] = {}
+
+                    marked_transitions[state][symbol] = f"{index}"
+
+        if len(groups) == len(groups := get_groups(marked_transitions)):
+            break
+
+    result.states = set(map(lambda i: f"{i}", range(0, len(groups))))
+
+    for index in range(len(groups)):
+        if groups[index].intersection(automaton.final_states):
+            result.final_states.add(f"{index}")
+
+        if automaton.initial_state in groups[index]:
+            result.initial_state = f"{index}"
+
+        minimized_transitions[f"{index}"] = marked_transitions[groups[index].pop()]
+
+    # result.transitions = minimized_transitions
+
+    return result
+
+
+def canonize(automaton: DFA) -> DFA:
+    print(automaton)
+    ordered_states: List[str] = []
+    for state in automaton.transitions.keys():
+        for symbol in automaton.transitions[state].keys():
+            if automaton.transitions[state][symbol] not in ordered_states:
+                ordered_states.append(automaton.transitions[state][symbol])
+
+    print("ordered states = ", ordered_states)
+
+    # append states that are not in the transitions
+    ordered_states.extend([state for state in automaton.states if state not in ordered_states])
+
+    result_transitions: DFATransitions = {}
+    result_final_states: Set[str] = set()
+    result_initial_state = ""
+    for state in ordered_states:
+        new_state = f"{ordered_states.index(state)}"
+        result_transitions[new_state] = {}
+
+        if state == automaton.initial_state:
+            result_initial_state = new_state
+
+        if state in automaton.final_states:
+            result_final_states.add(new_state)
+
+        for symbol in automaton.transitions[state].keys():
+            new_next_state = f"{ordered_states.index(automaton.transitions[state][symbol])}"
+            result_transitions[new_state][symbol] = new_next_state
+
+    # print(set(map(lambda i: f"{i}", range(0, len(ordered_states)))))
+    # print(result_final_states)
+
+    return DFA(
+        set(map(lambda i: f"{i}", range(0, len(ordered_states)))),
+        automaton.alphabet,
+        result_initial_state,
+        result_final_states,
+        result_transitions
+    )
 
 
 def dfa_demo():
@@ -207,6 +327,47 @@ def dfa_demo():
 
     print(switches.remove_transition("s7", "d"))
     print(switches.remove_transition("s7", "d"))
+
+    to_minimize_t = {
+        "A": {
+            "a": "B",
+            "b": "C",
+        },
+        "B": {
+            "a": "D",
+            "b": "E",
+        },
+        "C": {
+            "a": "C",
+            "b": "C",
+        },
+        "D": {
+            "a": "B",
+            "b": "E",
+        },
+        "E": {
+            "a": "F",
+            "b": "E",
+        },
+        "F": {
+            "a": "G",
+            "b": "E",
+        },
+        "G": {
+            "a": "D",
+            "b": "E",
+        },
+    }
+
+    to_minimize_a = DFA(
+        {"A", "B", "C", "D", "E", "F", "G"},
+        {"a", "b"},
+        "A",
+        {"B", "D", "F", "G"},
+        to_minimize_t
+    )
+
+    minimize(to_minimize_a)
 
 
 def nfa_demo():
@@ -332,4 +493,44 @@ def nfa_demo():
 
 
 if __name__ == "__main__":
-    nfa_demo()
+    to_minimize_t = {
+        "A": {
+            "a": "B",
+            "b": "C",
+        },
+        "B": {
+            "a": "D",
+            "b": "E",
+        },
+        "C": {
+            "a": "C",
+            "b": "C",
+        },
+        "D": {
+            "a": "B",
+            "b": "E",
+        },
+        "E": {
+            "a": "F",
+            "b": "E",
+        },
+        "F": {
+            "a": "G",
+            "b": "E",
+        },
+        "G": {
+            "a": "D",
+            "b": "E",
+        },
+    }
+
+    to_minimize_a = DFA(
+        {"A", "B", "C", "D", "E", "F", "G"},
+        {"a", "b"},
+        "A",
+        {"B", "D", "F", "G"},
+        to_minimize_t
+    )
+
+    # print(minimize(to_minimize_a))
+    print(canonize(minimize(to_minimize_a)))
