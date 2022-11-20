@@ -216,8 +216,6 @@ def minimize(automaton: DFA) -> DFA:
 
         minimized_transitions[f"{index}"] = marked_transitions[groups[index].pop()]
 
-    # result.transitions = minimized_transitions
-
     return result
 
 
@@ -228,8 +226,6 @@ def canonize(automaton: DFA) -> DFA:
         for symbol in automaton.transitions[state].keys():
             if automaton.transitions[state][symbol] not in ordered_states:
                 ordered_states.append(automaton.transitions[state][symbol])
-
-    print("ordered states = ", ordered_states)
 
     # append states that are not in the transitions
     ordered_states.extend([state for state in automaton.states if state not in ordered_states])
@@ -250,9 +246,6 @@ def canonize(automaton: DFA) -> DFA:
         for symbol in automaton.transitions[state].keys():
             new_next_state = f"{ordered_states.index(automaton.transitions[state][symbol])}"
             result_transitions[new_state][symbol] = new_next_state
-
-    # print(set(map(lambda i: f"{i}", range(0, len(ordered_states)))))
-    # print(result_final_states)
 
     return DFA(
         set(map(lambda i: f"{i}", range(0, len(ordered_states)))),
@@ -532,5 +525,4 @@ if __name__ == "__main__":
         to_minimize_t
     )
 
-    # print(minimize(to_minimize_a))
     print(canonize(minimize(to_minimize_a)))
