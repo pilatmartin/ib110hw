@@ -220,7 +220,6 @@ def minimize(automaton: DFA) -> DFA:
 
 
 def canonize(automaton: DFA) -> DFA:
-    print(automaton)
     ordered_states: List[str] = []
     for state in automaton.transitions.keys():
         for symbol in automaton.transitions[state].keys():

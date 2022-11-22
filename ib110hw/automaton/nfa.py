@@ -1,5 +1,5 @@
 from typing import Dict, Set, Optional
-from fa import FA
+from .fa import FA
 
 NFARule = Dict[str, Set[str]]
 NFATransitions = Dict[str, NFARule]
@@ -50,7 +50,7 @@ class NFA(FA):
         Returns:
             bool: True if transition was successfully added, False otherwise.
         """
-        if not {state_from, *states_to}.issubset(self.states):
+        if not {state_from, *states_to}.issubset(self.states) or symbol not in self.alphabet:
             return False
 
         if state_from not in self.transitions.keys():
@@ -81,19 +81,17 @@ class NFA(FA):
         Returns:
             bool: True if transition was successfully added, False otherwise
         """
-        if not self.get_transition(state_from, symbol):
+        transition = self.get_transition(state_from, symbol)
+
+        if not transition or state_to not in transition:
             return False
 
-        del self.transitions[state_from][state_to]
+        self.transitions[state_from][symbol].remove(state_to)
 
         return True
 
     def add_state(self, state: str, is_final: bool = False) -> bool:
-        if super().add_state(state, is_final):
-            self.transitions[state] = {}
-            return True
-
-        return False
+        return super().add_state(state, is_final)
 
     def remove_state(self, state: str) -> bool:
         """
@@ -105,7 +103,7 @@ class NFA(FA):
         if not super().remove_state(state):
             return False
 
-        for s in self.states:
+        for s in self.transitions.keys():
             rules = self.transitions[s]
             all_states = set().union(*rules.values())
 

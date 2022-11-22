@@ -1,54 +1,80 @@
-import sys
+from ib110hw.automaton.nfa import NFA
 
-sys.path.append("..")
-
-from ib110hw.automaton.dfa import NFA
-from hypothesis import given
-from hypothesis.strategies import characters, booleans
-
-TMP_AUTOMATON: NFA = NFA(alphabet={"a", "b"},
-                    states={"s1", "s2", "s3"},
-                    initial_state="s1",
-                    final_states={"s2"},
-                    transitions={
-                        "s1": {
-                            "a": {"s2"},
-                        },
-                        "s2": {
-                            "a": {"s2"},
-                            "b": {"s3"},
-                        },
-                        "s3": {
-                            "a": {"s2"},
-                            "b": {"s3"}
-                        }
-                    })
-
-
-@given(characters(), booleans())
-def test_add_state(state: str, is_final: bool) -> None:
-    TMP_AUTOMATON.add_state(state, is_final)
-
-    assert not (is_final and state not in TMP_AUTOMATON.final_states) and \
-            state in [*TMP_AUTOMATON.states, *TMP_AUTOMATON.transitions.keys()]
-
-
-@given(characters())
-def test_remove_state(state: str) -> None:
-    TMP_AUTOMATON.remove_state(state)
-
-    assert state not in [
-        *TMP_AUTOMATON.states, 
-        *TMP_AUTOMATON.final_states, 
-        *TMP_AUTOMATON.transitions.keys(), 
-        #TODO add check of values in tranisitions
-        ]
 
 def test_add_transition() -> None:
-    pass
+    automaton = NFA({"s"}, set("a"), "s", {"s"}, {})
+    assert automaton.add_transition("s", {"s"}, "a")
+    assert "s" in automaton.transitions.keys()
+    assert "a" in automaton.transitions["s"].keys()
+    assert {"s"} == automaton.transitions["s"]["a"]
+    assert not automaton.add_transition("s", {"s"}, "a")
+
+    assert not automaton.add_transition("not_exists", {"s"}, "a")
+    assert not automaton.add_transition("s", {"not_exists"}, "a")
+    assert not automaton.add_transition("s", {"s"}, "not_exists")
+
+    t1 = {"s": {"a": {"s"}}}
+    automaton = NFA({"s"}, {"a", "b"}, "s", {"s"}, t1)
+    assert not automaton.add_transition("s", {"s"}, "a")
+    assert automaton.add_transition("s", {"s"}, "b")
+    assert not automaton.add_transition("s", {"s"}, "b")
+    assert "s" in automaton.transitions.keys()
+    assert "a" in automaton.transitions["s"].keys()
+    assert "b" in automaton.transitions["s"].keys()
+    assert {"s"} == automaton.transitions["s"]["a"]
+    assert {"s"} == automaton.transitions["s"]["b"]
+
 
 def test_remove_transition() -> None:
-    pass
+    t1 = {"s": {"a": {"s"}}}
+    automaton = NFA({"s"}, {"a", "b"}, "s", {"s"}, t1)
+    assert not automaton.remove_transition("s", "b", "s")
+    assert not automaton.remove_transition("not_exists", "s",  "a")
+    assert automaton.remove_transition("s", "s", "a")
+    assert not automaton.transitions["s"]["a"]
+    assert not automaton.remove_transition("s", "s", "a")
+
+    t2 = {"s": {"a": {"s"}, "b": {"s"}}}
+    automaton.transitions = t2
+    assert not automaton.remove_transition("s", "s", "c")
+    assert automaton.remove_transition("s", "s", "a")
+    assert len(automaton.transitions.keys()) == 1
+    assert len(automaton.transitions["s"].keys()) == 2
+    assert len(automaton.transitions["s"]["a"]) == 0
+    assert automaton.remove_transition("s", "s", "b")
+    assert not automaton.transitions["s"]["a"]
+
+
+def test_add_state() -> None:
+    automaton = NFA({"s1"}, set(), "s1", {"s1"}, {})
+    assert automaton.add_state("s2")
+    assert not automaton.add_state("s2")
+    assert not automaton.add_state("s2", True)
+
+    assert "s2" in automaton.states
+    assert "s2" not in automaton.final_states
+    assert "s2" not in automaton.transitions.keys()
+
+    assert automaton.add_state("s3", True)
+    assert not automaton.add_state("s3")
+    assert "s3" in automaton.states
+    assert "s3" in automaton.final_states
+
+
+def test_remove_state() -> None:
+    automaton = NFA({"s1", "s2"}, set(), "s1", {"s1"}, {})
+    assert automaton.remove_state("s2")
+    assert "s2" not in automaton.states
+
+    assert not automaton.remove_state("s1")
+    assert not automaton.remove_state("s2")
+
+    automaton.states.add("s2")
+    automaton.initial_state = "s2"
+    assert automaton.remove_state("s1")
+    assert "s1" not in automaton.states
+    assert "s1" not in automaton.final_states
+
 
 def is_accepted() -> None:
     pass
