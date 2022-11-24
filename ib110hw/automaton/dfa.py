@@ -1,5 +1,5 @@
 from typing import Dict, Set, Optional
-from fa import FA
+from .fa import FA
 
 DFATransitions = Dict[str, Dict[str, str]]
 
@@ -113,10 +113,10 @@ class DFA(FA):
             return False
 
         for s in self.states:
-            if s not in self.transitions:
+            if s not in self.transitions.keys():
                 continue
 
-            for symbol in self.transitions[s]:
+            for symbol in list(self.transitions[s].keys()):
                 if self.transitions[s][symbol] == state:
                     del self.transitions[s][symbol]
 

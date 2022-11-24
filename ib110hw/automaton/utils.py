@@ -1,7 +1,8 @@
+import copy
 from typing import Union, Set, Deque, Dict, List
-from fa import FA
-from nfa import NFA, NFATransitions
-from dfa import DFA, DFATransitions
+from .fa import FA
+from .nfa import NFA, NFATransitions
+from .dfa import DFA, DFATransitions
 from collections import deque
 
 
@@ -16,7 +17,7 @@ def automaton_to_graphviz(automaton: Union[NFA, DFA], path: str) -> None:
     """
     with open(path, "w") as file:
         file.write(
-            f"""digraph G {{\n\t_init[shape=none]\n\t_init[label=\"\"]\n\t_init -> {automaton.initial_state}"""
+            f"""digraph G {{\n\t_init[shape=none]\n\t_init[label=\"\"]\n\t_init -> {automaton.initial_state}\n"""
         )
 
         for s_from in automaton.states:
@@ -131,6 +132,31 @@ def remove_empty_transitions(automaton: NFA) -> NFA:
 
             for next_state in next2_transition:
                 result.add_transition(state, next1[next_state], symbol)
+
+    return result
+
+
+def remove_unreachable_states(automaton: Union[DFA, NFA]) -> Union[NFA, DFA]:
+    result = copy.deepcopy(automaton)
+    reachable = {automaton.initial_state}
+    q = deque()
+    q.append(automaton.initial_state)
+
+    while q:
+        state = q.popleft()
+
+        if isinstance(automaton, NFA):
+            next_s = set()
+            for symbol in automaton.alphabet:
+                next_s.update(automaton.get_transition(state, symbol))
+        else:
+            next_s = {*[automaton.get_transition(state, symbol) for symbol in automaton.alphabet]}
+
+        q.extend(next_s.difference(reachable))
+        reachable.update(next_s)
+
+    for state in list(automaton.states.difference(reachable)):
+        result.remove_state(state)
 
     return result
 

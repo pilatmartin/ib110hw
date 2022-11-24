@@ -26,7 +26,6 @@ class FA:
         return f"alphabet: {alphabet_str}\nstates: {states_str}\nfinal states: {final_states_str}\n"
 
     def __repr_transitions__(self, automaton_type: str) -> str:
-
         def get_row_prefix(state):
             if state == self.initial_state:
                 return "-> "
@@ -35,20 +34,19 @@ class FA:
 
             return "   "
 
-        header = f"{automaton_type: ^10}|"
+        header = f"{automaton_type: ^20}|"
         for letter in sorted(self.alphabet):
-            header += f"{letter if letter else 'ε': ^10}|"
+            header += f"{letter if letter else 'ε': ^20}|"
 
         rows = ""
         for state in sorted(self.states):
             row_prefix = get_row_prefix(state)
-            rows += f"{row_prefix}{state or 'empty': <7}"
+            rows += f"{row_prefix}{state or 'empty': <17}"
 
             for letter in sorted(self.alphabet):
                 transition = self.get_transition(state, letter)
-                transition_str = transition if automaton_type == "DFA" else ",".join(
-                    transition)
-                rows += f"|{transition_str or 'empty': ^10}"
+                transition_str = transition if automaton_type == "DFA" else "{" + ",".join(transition) + "}"
+                rows += f"|{transition_str or 'empty': ^20}"
 
             rows += "\n"
 
