@@ -1,8 +1,12 @@
-from random import randint, choice, choices
-from typing import Set
+from random import randint, choice, sample
+from typing import Set, List
 from ib110hw.automaton.dfa import DFA
 from ib110hw.automaton.nfa import NFA
 from ib110hw.automaton.utils import automaton_to_graphviz, remove_unreachable_states
+
+
+def r_states(min_states: int, max_states: int) -> List[str]:
+    return [f"s{i}" for i in range(randint(min_states, max_states))]
 
 
 def r_dfa(min_deg: int,
@@ -34,20 +38,28 @@ def r_dfa(min_deg: int,
     Returns:
         Random DFA. (Can be disjointed)
     """
+    assert min_deg <= max_deg
+    assert min_states <= max_states
+    assert min_fin_states <= max_fin_states
+
     def add_next_states(_min_deg: int, _state: str) -> None:
         s_deg = randint(_min_deg, max_deg)
-        next_states = choices(states, k=s_deg)
-        symbols = choices(list(alphabet), k=s_deg)
+        next_states = sample(states, k=min(s_deg, len(states)))
+        symbols = sample(list(alphabet), k=s_deg)
 
         for next_s, symbol in zip(next_states, symbols):
             result.add_transition(_state, next_s, symbol)
 
-    states = [f"s{i}" for i in range(randint(min_states, max_states))]
+    # state degree cannot be bigger than the size of DFA automatons alphabet
+    max_deg = min(len(alphabet), max_deg)
+    min_deg = min(min_deg, max_deg)
+
+    states = r_states(min_states, max_states)
     result = DFA(
         set(states),
         alphabet,
         choice(states),
-        set(choices(states, k=randint(min_fin_states, max_fin_states))),
+        set(sample(states, k=randint(min(len(states), min_fin_states), min(len(states), max_fin_states)))),
         {}
     )
 
@@ -88,51 +100,62 @@ def r_nfa(min_deg: int,
     Returns:
         Random NFA. (Can be disjointed)
     """
+
     def add_next_states(_min_deg: int, _max_deg: int, _state: str) -> None:
         s_deg = randint(_min_deg, max_deg)
-        symbols = choices(list(alphabet), k=s_deg)
+        next_states = sample(states, k=min(s_deg, len(states)))
 
-        degs_by_symbol = []
-        for _ in range(len(symbols)):
-            curr_deg = 0 if _max_deg < min_deg else randint(_min_deg, _max_deg)
-            degs_by_symbol.append(curr_deg)
-            _max_deg -= curr_deg
-
-        for deg, symbol in zip(degs_by_symbol, set(symbols)):
-            result.add_transition(_state, set(choices(states, k=deg)), symbol)
+        for next_state in next_states:
+            result.add_transition(_state, {next_state}, choice(list(alphabet)))
 
     states = [f"s{i}" for i in range(randint(min_states, max_states))]
     result = NFA(
         set(states),
         alphabet,
         choice(states),
-        set(choices(states, k=randint(min_fin_states, max_fin_states))),
+        set(sample(states, k=randint(min(len(states), min_fin_states), min(len(states), max_fin_states)))),
         {}
     )
 
     add_next_states(1, max_deg, result.initial_state)
 
     for state in result.states.difference([result.initial_state]):
-        add_next_states(max_deg, min_deg, state)
+        add_next_states(min_deg, max_deg, state)
 
     return result
 
 
 if __name__ == "__main__":
-    r_dfa_automaton = r_dfa(1, 3, 2, 10, 2, 5, {"a", "b"})
+    r_dfa_automaton = r_dfa(
+        min_deg=1,
+        max_deg=3,
+        min_states=3,
+        max_states=8,
+        min_fin_states=1,
+        max_fin_states=3,
+        alphabet={"a", "b", "c", "d"}
+    )
     print(r_dfa_automaton)
-    r_reachable = remove_unreachable_states(r_dfa_automaton)
-    print(r_reachable)
+    r_dfa_reachable = remove_unreachable_states(r_dfa_automaton)
+    print(r_dfa_reachable)
 
-    r_nfa_automaton = r_nfa(1, 3, 2, 10, 2, 5, {"a", "b"})
+    r_nfa_automaton = r_nfa(
+        min_deg=1,
+        max_deg=3,
+        min_states=3,
+        max_states=8,
+        min_fin_states=1,
+        max_fin_states=3,
+        alphabet={"a", "b", "c", "d"}
+    )
     print(r_nfa_automaton)
-    r_reachable = remove_unreachable_states(r_nfa_automaton)
-    print(r_reachable)
+    r_nfa_reachable = remove_unreachable_states(r_nfa_automaton)
+    print(r_nfa_reachable)
 
     r_name = f"r_dfa_{randint(0, 10 ** 10)}"
     automaton_to_graphviz(r_dfa_automaton, f"C:\\Skola\\SBAPR\\r_automatons\\r_dfa\\{r_name}.dot")
-    automaton_to_graphviz(r_reachable, f"C:\\Skola\\SBAPR\\r_automatons\\r_dfa\\{r_name}_reach.dot")
+    automaton_to_graphviz(r_dfa_reachable, f"C:\\Skola\\SBAPR\\r_automatons\\r_dfa\\{r_name}_reach.dot")
 
     r_name = f"r_nfa_{randint(0, 10 ** 10)}"
     automaton_to_graphviz(r_nfa_automaton, f"C:\\Skola\\SBAPR\\r_automatons\\r_nfa\\{r_name}.dot")
-    automaton_to_graphviz(r_reachable, f"C:\\Skola\\SBAPR\\r_automatons\\r_nfa\\{r_name}_reach.dot")
+    automaton_to_graphviz(r_nfa_reachable, f"C:\\Skola\\SBAPR\\r_automatons\\r_nfa\\{r_name}_reach.dot")

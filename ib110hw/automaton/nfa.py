@@ -64,7 +64,7 @@ class NFA(FA):
         if not states_to.difference(transition):
             return False
 
-        self.transitions[state_from][symbol].update(*states_to)
+        self.transitions[state_from][symbol].update(states_to)
 
         return True
 
@@ -103,15 +103,13 @@ class NFA(FA):
         if not super().remove_state(state):
             return False
 
+        self.transitions.pop(state, None)
+
         for s in self.transitions.keys():
             rules = self.transitions[s]
-            all_states = set().union(*rules.values())
-
-            if state not in all_states:
-                continue
 
             for k in rules.keys():
-                rules[k].remove(state)
+                rules[k] = rules[k].difference({state})
 
         return True
 

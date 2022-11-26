@@ -1,79 +1,135 @@
 from ib110hw.automaton.nfa import NFA
+from hypothesis import given, assume
+from hypothesis.strategies import integers, sets, characters, composite, DrawFn
+from .generation import r_nfa
 
 
-def test_add_transition() -> None:
-    automaton = NFA({"s"}, set("a"), "s", {"s"}, {})
-    assert automaton.add_transition("s", {"s"}, "a")
-    assert "s" in automaton.transitions.keys()
-    assert "a" in automaton.transitions["s"].keys()
-    assert {"s"} == automaton.transitions["s"]["a"]
-    assert not automaton.add_transition("s", {"s"}, "a")
+@composite
+def r_test_nfa(
+        draw: DrawFn,
+        min_deg=integers(min_value=1, max_value=10),
+        max_deg=integers(min_value=1, max_value=10),
+        min_states=integers(min_value=2, max_value=10),
+        max_states=integers(min_value=2, max_value=10),
+        min_fin_states=integers(min_value=1, max_value=10),
+        max_fin_states=integers(min_value=2, max_value=10),
+        alphabet=sets(characters(), min_size=2, max_size=20)
+):
+    max_deg = draw(max_deg)
+    min_deg = min(draw(min_deg), max_deg)
+    max_states = draw(max_states)
+    min_states = min(draw(min_states), max_states)
+    max_fin_states = draw(max_fin_states)
+    min_fin_states = min(draw(min_fin_states), max_fin_states)
 
-    assert not automaton.add_transition("not_exists", {"s"}, "a")
-    assert not automaton.add_transition("s", {"not_exists"}, "a")
-    assert not automaton.add_transition("s", {"s"}, "not_exists")
+    r_automaton = r_nfa(
+        min_deg,
+        max_deg,
+        min_states,
+        max_states,
+        min_fin_states,
+        max_fin_states,
+        draw(alphabet)
+    )
 
-    t1 = {"s": {"a": {"s"}}}
-    automaton = NFA({"s"}, {"a", "b"}, "s", {"s"}, t1)
-    assert not automaton.add_transition("s", {"s"}, "a")
-    assert automaton.add_transition("s", {"s"}, "b")
-    assert not automaton.add_transition("s", {"s"}, "b")
-    assert "s" in automaton.transitions.keys()
-    assert "a" in automaton.transitions["s"].keys()
-    assert "b" in automaton.transitions["s"].keys()
-    assert {"s"} == automaton.transitions["s"]["a"]
-    assert {"s"} == automaton.transitions["s"]["b"]
+    diff = r_automaton.states.difference(r_automaton.final_states)
+    assume(diff and diff != {r_automaton.initial_state})
 
-
-def test_remove_transition() -> None:
-    t1 = {"s": {"a": {"s"}}}
-    automaton = NFA({"s"}, {"a", "b"}, "s", {"s"}, t1)
-    assert not automaton.remove_transition("s", "b", "s")
-    assert not automaton.remove_transition("not_exists", "s",  "a")
-    assert automaton.remove_transition("s", "s", "a")
-    assert not automaton.transitions["s"]["a"]
-    assert not automaton.remove_transition("s", "s", "a")
-
-    t2 = {"s": {"a": {"s"}, "b": {"s"}}}
-    automaton.transitions = t2
-    assert not automaton.remove_transition("s", "s", "c")
-    assert automaton.remove_transition("s", "s", "a")
-    assert len(automaton.transitions.keys()) == 1
-    assert len(automaton.transitions["s"].keys()) == 2
-    assert len(automaton.transitions["s"]["a"]) == 0
-    assert automaton.remove_transition("s", "s", "b")
-    assert not automaton.transitions["s"]["a"]
+    return r_automaton
 
 
-def test_add_state() -> None:
-    automaton = NFA({"s1"}, set(), "s1", {"s1"}, {})
-    assert automaton.add_state("s2")
-    assert not automaton.add_state("s2")
-    assert not automaton.add_state("s2", True)
 
-    assert "s2" in automaton.states
-    assert "s2" not in automaton.final_states
-    assert "s2" not in automaton.transitions.keys()
+@given(r_test_nfa())
+def test_add_state(automaton: NFA) -> None:
+    assert automaton.add_state("test_state_1")
+    # cannot add the same state twice
+    assert not automaton.add_state("test_state_1")
+    assert not automaton.add_state("test_state_1", True)
 
-    assert automaton.add_state("s3", True)
-    assert not automaton.add_state("s3")
-    assert "s3" in automaton.states
-    assert "s3" in automaton.final_states
+    assert "test_state_1" in automaton.states
+    assert "test_state_1" not in automaton.final_states
+    assert "test_state_1" not in automaton.transitions
+
+    assert automaton.add_state("test_state_2", True)
+    assert not automaton.add_state("test_state_2")
+    assert "test_state_2" in automaton.states
+    assert "test_state_2" in automaton.final_states
 
 
-def test_remove_state() -> None:
-    automaton = NFA({"s1", "s2"}, set(), "s1", {"s1"}, {})
-    assert automaton.remove_state("s2")
-    assert "s2" not in automaton.states
+@given(r_test_nfa())
+def test_remove_state(automaton: NFA) -> None:
+    # pick state that can be safely removed
+    state = next(
+        s for s in automaton.states if s not in automaton.final_states and s != automaton.initial_state
+    )
 
-    assert not automaton.remove_state("s1")
-    assert not automaton.remove_state("s2")
+    assert automaton.remove_state(state)
+    # cannot remove the same state twice
+    assert not automaton.remove_state(state)
+    assert state not in automaton.states
+    assert not automaton.remove_state("not_existent")
+    assert not automaton.remove_state(automaton.initial_state)
 
-    automaton.states.add("s2")
-    automaton.initial_state = "s2"
-    assert automaton.remove_state("s1")
-    assert "s1" not in automaton.states
-    assert "s1" not in automaton.final_states
+    prev_initial = automaton.initial_state
+    automaton.states.add("test_init_state")
+    automaton.initial_state = "test_init_state"
+
+    # just in case the initial state is the only final state
+    if prev_initial in automaton.final_states:
+        automaton.final_states.remove(prev_initial)
+
+    assert automaton.remove_state(prev_initial)
+    assert prev_initial not in automaton.states
+    assert prev_initial not in automaton.final_states
+    print(prev_initial, automaton.transitions.get(prev_initial))
+    assert not automaton.transitions.get(prev_initial, None)
+
+    automaton.add_state("test_final_state", True)
+    # just in case the final states was empty
+    automaton.add_state("filler_state", True)
+
+    assert automaton.remove_state("test_final_state")
+    assert "test_final_state" not in automaton.final_states
+
+
+@given(r_test_nfa())
+def test_add_transition(automaton: NFA) -> None:
+    automaton.add_state("test_state")
+    automaton.alphabet.add("a")
+
+    assert automaton.add_transition("test_state", {"test_state"}, "a")
+    assert "test_state" in automaton.transitions.keys()
+    assert "a" in automaton.transitions["test_state"]
+    assert {"test_state"} == automaton.transitions["test_state"]["a"]
+    assert not automaton.add_transition("test_state", {"test_state"}, "a")
+
+    assert not automaton.add_transition("not_exists", {"test_state"}, "a")
+    assert not automaton.add_transition("test_state", {"not_exists"}, "a")
+    assert not automaton.add_transition("test_state", {"test_state"}, "not_exists")
+
+    automaton.add_state("test_second_state")
+    assert automaton.add_transition("test_state", {"test_second_state"}, "a")
+    assert "test_second_state" not in automaton.transitions.keys()
+    assert {"test_state", "test_second_state"} == automaton.get_transition("test_state", "a")
+    assert not automaton.add_transition("test_state", {"test_second_state"}, "a")
+
+
+@given(r_test_nfa())
+def test_remove_transition(automaton: NFA) -> None:
+    automaton.add_state("test_state")
+    automaton.alphabet.add("a")
+    automaton.add_transition("test_state", {"test_state"}, "a")
+
+    assert not automaton.remove_transition("test_state", automaton.alphabet.difference(["a"]).pop(), "test_state")
+    assert not automaton.remove_transition("not_exists", "test_state", "a")
+    assert automaton.remove_transition("test_state", "test_state", "a")
+    assert not automaton.get_transition("test_state", "a")
+    assert not automaton.remove_transition("test_state", "test_state", "a")
+
+    automaton.add_state("test_second_state")
+    automaton.add_transition("test_state", {"test_state", "test_second_state"}, "a")
+    assert automaton.remove_transition("test_state", "test_state", "a")
+    assert automaton.get_transition("test_state", "a") == {"test_second_state"}
 
 
 def is_accepted() -> None:

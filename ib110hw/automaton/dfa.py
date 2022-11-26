@@ -112,11 +112,13 @@ class DFA(FA):
         if not super().remove_state(state):
             return False
 
+        self.transitions.pop(state, None)
+
         for s in self.states:
             if s not in self.transitions.keys():
                 continue
 
-            for symbol in list(self.transitions[s].keys()):
+            for symbol in list(self.transitions[s]):
                 if self.transitions[s][symbol] == state:
                     del self.transitions[s][symbol]
 
