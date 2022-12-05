@@ -26,27 +26,41 @@ class FA:
         return f"alphabet: {alphabet_str}\nstates: {states_str}\nfinal states: {final_states_str}\n"
 
     def __repr_transitions__(self, automaton_type: str) -> str:
-        def get_row_prefix(state):
+        def get_row_prefix(state: str):
+            if state == self.initial_state and state in self.final_states:
+                return "<-> "
             if state == self.initial_state:
-                return "-> "
+                return "--> "
             elif state in self.final_states:
-                return "<- "
+                return "<-- "
 
-            return "   "
+            return "    "
 
-        header = f"{automaton_type: ^20}|"
+        def get_max_cell_width():
+            max_cell_width = 5
+
+            for t in self.transitions.values():
+                for next_val in t.values():
+                    width = len(next_val) if automaton_type == "DFA" else f"{{','.join(sorted(next_val))}}"
+                    max_cell_width = max(max_cell_width, width)
+
+            # add 4 for spaces on both sides
+            return max_cell_width + 4
+
+        cell_width = get_max_cell_width()
+        header = f"{automaton_type : ^10}|"
         for letter in sorted(self.alphabet):
-            header += f"{letter if letter else 'ε': ^20}|"
+            header += f"{letter if letter else 'ε': ^{cell_width}}|"
 
         rows = ""
         for state in sorted(self.states):
             row_prefix = get_row_prefix(state)
-            rows += f"{row_prefix}{state or 'empty': <17}"
+            rows += f"{row_prefix: ^5}{state or 'empty': <5}"
 
             for letter in sorted(self.alphabet):
                 transition = self.get_transition(state, letter)
                 transition_str = transition if automaton_type == "DFA" else "{" + ",".join(transition) + "}"
-                rows += f"|{transition_str or 'empty': ^20}"
+                rows += f"|{transition_str or 'empty': ^{cell_width}}"
 
             rows += "\n"
 

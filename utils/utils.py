@@ -1,8 +1,9 @@
 import copy
 from typing import Union, Set, Deque, Dict, List
-from .fa import FA
-from .nfa import NFA, NFATransitions
-from .dfa import DFA, DFATransitions
+from ib110hw.automaton.fa import FA
+from ib110hw.automaton.nfa import NFA, NFATransitions
+from ib110hw.automaton.dfa import DFA
+from minimization_examples import *
 from collections import deque
 
 
@@ -44,6 +45,7 @@ def automaton_to_graphviz(automaton: Union[NFA, DFA], path: str) -> None:
 def determinize(automaton: NFA) -> DFA:
     """
     Returns equivalent DFA version of the provided NFA
+    Input automaton is not altered.
 
     Args:
         automaton (NFA): NFA automaton to be determinized
@@ -91,6 +93,7 @@ def determinize(automaton: NFA) -> DFA:
 def remove_empty_transitions(automaton: NFA) -> NFA:
     """
     Removes all epsilon (ε) transitions.
+    Input automaton is not altered.
 
     Args:
         automaton (NFA): Automaton to be updated
@@ -137,6 +140,16 @@ def remove_empty_transitions(automaton: NFA) -> NFA:
 
 
 def remove_unreachable_states(automaton: Union[DFA, NFA]) -> Union[NFA, DFA]:
+    """
+    Removes unreachable states from the provided automaton.
+    Input automaton is not altered.
+
+    Args:
+        automaton (Union[DFA, NFA]):
+
+    Returns:
+        Equal automaton without unreachable states.
+    """
     result = copy.deepcopy(automaton)
     reachable = {automaton.initial_state}
     q = deque()
@@ -165,6 +178,7 @@ def remove_unreachable_states(automaton: Union[DFA, NFA]) -> Union[NFA, DFA]:
 def minimize(automaton: DFA) -> DFA:
     """
     Returns a minimized version of the provided automaton.
+    Input automaton is not altered.
 
     Args:
         automaton (FA): Automaton to be minimized
@@ -177,7 +191,7 @@ def minimize(automaton: DFA) -> DFA:
         new_groups = {}
 
         for g_index, _group in enumerate(groups):
-            for _state in _group:
+            for _state in sorted(_group):
                 # group key is prefixed with index
                 # to distinguish the same transitions from different groups
                 group_key = f"{g_index}_"
@@ -198,18 +212,20 @@ def minimize(automaton: DFA) -> DFA:
 
         return list(new_groups.values())
 
-    minimized_transitions = {}
+    minimized_transitions: DFATransitions = {}
+    reachable: DFA = remove_unreachable_states(automaton)
 
     result: DFA = DFA(
-        automaton.states,
-        automaton.alphabet,
-        automaton.initial_state,
+        reachable.states,
+        reachable.alphabet,
+        reachable.initial_state,
         set(),
         transitions=minimized_transitions
     )
+
     groups: List[Set[str]] = [
-        automaton.final_states,
-        automaton.states.difference(automaton.final_states)
+        reachable.final_states,
+        reachable.states.difference(reachable.final_states)
     ]
 
     while True:
@@ -217,10 +233,10 @@ def minimize(automaton: DFA) -> DFA:
         # break when nothing changes
         marked_transitions = {}
 
-        for state in automaton.transitions:
-            for symbol in automaton.alphabet:
+        for state in reachable.transitions:
+            for symbol in sorted(reachable.alphabet):
                 for index, group in enumerate(groups):
-                    if automaton.get_transition(state, symbol) not in group:
+                    if reachable.get_transition(state, symbol) not in group:
                         continue
 
                     if state not in marked_transitions.keys():
@@ -234,10 +250,10 @@ def minimize(automaton: DFA) -> DFA:
     result.states = set(map(lambda i: f"{i}", range(0, len(groups))))
 
     for index in range(len(groups)):
-        if groups[index].intersection(automaton.final_states):
+        if groups[index].intersection(reachable.final_states):
             result.final_states.add(f"{index}")
 
-        if automaton.initial_state in groups[index]:
+        if reachable.initial_state in groups[index]:
             result.initial_state = f"{index}"
 
         minimized_transitions[f"{index}"] = marked_transitions[groups[index].pop()]
@@ -246,14 +262,27 @@ def minimize(automaton: DFA) -> DFA:
 
 
 def canonize(automaton: DFA) -> DFA:
+    """
+    Transforms provided automaton to its canonical form.
+    Input automaton is not altered.
+
+    Args:
+        automaton (DFA): Automaton to be canonized
+
+    Returns:
+        Canonical form of the provided automaton.
+    """
     ordered_states: List[str] = []
     for state in automaton.transitions.keys():
+        if state not in ordered_states:
+            ordered_states.append(state)
+
         for symbol in automaton.transitions[state].keys():
             if automaton.transitions[state][symbol] not in ordered_states:
                 ordered_states.append(automaton.transitions[state][symbol])
 
     # append states that are not in the transitions
-    ordered_states.extend([state for state in automaton.states if state not in ordered_states])
+    ordered_states.extend([state for state in sorted(automaton.states) if state not in ordered_states])
 
     result_transitions: DFATransitions = {}
     result_final_states: Set[str] = set()
@@ -281,273 +310,33 @@ def canonize(automaton: DFA) -> DFA:
     )
 
 
-def dfa_demo():
-    # Switches DFA (hw1)
-    print("#### Switches DFA (hw1) ####\n")
-    transitions_switches: DFATransitions = {
-        "s1": {
-            "a": "s3",
-            "b": "s1",
-            "c": "s2",
-        },
-        "s2": {
-            "a": "s5",
-            "b": "s1",
-            "c": "s2",
-        },
-        "s3": {
-            "a": "s3",
-            "b": "s1",
-            "c": "s6",
-        },
-        "s4": {
-            "a": "s3",
-            "b": "s7",
-            "c": "s2",
-        },
-        "s5": {
-            "a": "s5",
-            "b": "s7",
-            "c": "s2",
-        },
-        "s6": {
-            "a": "s3",
-            "b": "s7",
-            "c": "s6",
-        },
-        "s7": {
-            "a": "s5",
-            "b": "s7",
-            "c": "s6",
-        },
-    }
+def compare_automatons(a1: Union[NFA, DFA], a2: Union[NFA, DFA]) -> bool:
+    a1 = canonize(minimize(determinize(a1)))
+    a2 = canonize(minimize(determinize(a2)))
 
-    switches = DFA(alphabet={"a", "b", "c", "d"},
-                   final_states={"s2", "s3", "s4", "s7"},
-                   initial_state="s4",
-                   states={"s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8"},
-                   transitions=transitions_switches)
-
-    test_word = "cabbacac"
-
-    print(switches, "\n")
-
-    automaton_to_graphviz(switches, r"C:\Skola\SBAPR\dfa_demo_switches.dot")
-    print(f"Is '{test_word}' accepted:", switches.is_accepted(test_word))
-
-    switches.add_state("s8")
-    print(switches)
-
-    print(switches.add_transition("s7", "s8", "d"))
-    print(switches)
-    print(switches.add_transition("s7", "s8", "d"))
-    automaton_to_graphviz(switches, r"C:\Skola\SBAPR\dfa_demo_switches2.dot")
-
-    print(switches.remove_transition("s7", "d"))
-    print(switches.remove_transition("s7", "d"))
-
-    to_minimize_t = {
-        "A": {
-            "a": "B",
-            "b": "C",
-        },
-        "B": {
-            "a": "D",
-            "b": "E",
-        },
-        "C": {
-            "a": "C",
-            "b": "C",
-        },
-        "D": {
-            "a": "B",
-            "b": "E",
-        },
-        "E": {
-            "a": "F",
-            "b": "E",
-        },
-        "F": {
-            "a": "G",
-            "b": "E",
-        },
-        "G": {
-            "a": "D",
-            "b": "E",
-        },
-    }
-
-    to_minimize_a = DFA(
-        {"A", "B", "C", "D", "E", "F", "G"},
-        {"a", "b"},
-        "A",
-        {"B", "D", "F", "G"},
-        to_minimize_t
-    )
-
-    minimize(to_minimize_a)
-
-
-def nfa_demo():
-    # NFA: last letter occurs at least twice
-    print("#### Last letter occurs at least twice ####\n")
-    transitions: NFATransitions = {
-        "s1": {
-            "a": {"s1", "s2"},
-            "b": {"s1", "s3"},
-            "c": {"s1", "s4"},
-        },
-        "s2": {
-            "a": {"s2", "s5"},
-            "b": {"s2"},
-            "c": {"s2"},
-        },
-        "s3": {
-            "a": {"s3"},
-            "b": {"s3", "s5"},
-            "c": {"s3"},
-        },
-        "s4": {
-            "a": {"s4"},
-            "b": {"s4"},
-            "c": {"s4", "s5"},
-        },
-    }
-
-    last_letter = NFA(states={"s1", "s2", "s3", "s4", "s5"},
-                      alphabet={"a", "b", "c"},
-                      initial_state="s1",
-                      final_states={"s5"},
-                      transitions=transitions)
-
-    test_word = "cba"
-    automaton_to_graphviz(last_letter,
-                          r"C:\Skola\SBAPR\nfa_demo_last_letter.dot")
-
-    print(f"Is accepted '{test_word}':", last_letter.is_accepted(test_word),
-          "\n")
-    print(last_letter)
-    print("=" * 40, "\n")
-
-    # NFA that accepts only 'a(b*a*)*a'
-    print("#### Accepts only 'a(b*a*)*a' ####\n")
-
-    transitions_abba: NFATransitions = {
-        "s1": {
-            "a": {"s2"},
-        },
-        "s2": {
-            "a": {"s2"},
-            "b": {"s3"},
-        },
-        "s3": {
-            "a": {"s2"},
-            "b": {"s3"}
-        }
-    }
-
-    abba = NFA(alphabet={"a", "b"},
-               states={"s1", "s2", "s3"},
-               initial_state="s1",
-               final_states={"s2"},
-               transitions=transitions_abba)
-
-    test_word = "abaaab"
-
-    automaton_to_graphviz(abba, r"C:\Skola\SBAPR\nfa_demo_abba.dot")
-    print(f"Is accepted '{test_word}':", abba.is_accepted(test_word), "\n")
-    print("=" * 40, "\n")
-
-    # Determinization example from a lecture
-    print("#### Determinization example from a lecture ####\n")
-    transitions = {
-        "0": {
-            "a": {"1", "2"},
-        },
-        "1": {
-            "a": {"1", "2"},
-            "b": {"3"},
-        },
-        "2": {
-            "a": {"0", "3"},
-            "b": {"3"},
-        },
-        "3": {
-            "a": {"2", "3"},
-            "b": {"3"},
-        }
-    }
-
-    det_test = NFA(states={"0", "1", "2", "3"},
-                   alphabet={"a", "b"},
-                   initial_state="0",
-                   final_states={"1", "2"},
-                   transitions=transitions)
-
-    print("Before determinization")
-    print(det_test, "\n")
-    print("After determinization")
-    print(determinize(det_test))
-
-    empty_t = {
-        "0": {
-            "a": {"1"}
-        },
-        "1": {
-            "b": {"2"},
-            "": {"0"},
-        },
-        "2": {
-            "a": {"2"},
-            "": {"1"},
-        }
-    }
-
-    nfa_empty_t = NFA({"0", "1", "2"}, {"a", "b", ""}, "0", {"2"}, empty_t)
-
-    print(nfa_empty_t)
-
-    print(remove_empty_transitions(nfa_empty_t))
+    return a1.states == a2.states and \
+           a1.final_states == a2.final_states and \
+           a1.alphabet == a2.alphabet and \
+           a1.transitions == a2.transitions
 
 
 if __name__ == "__main__":
-    to_minimize_t = {
-        "A": {
-            "a": "B",
-            "b": "C",
-        },
-        "B": {
-            "a": "D",
-            "b": "E",
-        },
-        "C": {
-            "a": "C",
-            "b": "C",
-        },
-        "D": {
-            "a": "B",
-            "b": "E",
-        },
-        "E": {
-            "a": "F",
-            "b": "E",
-        },
-        "F": {
-            "a": "G",
-            "b": "E",
-        },
-        "G": {
-            "a": "D",
-            "b": "E",
-        },
-    }
+    print(ex1_a)
+    print(ex2_a)
+    print(ex3_a)
+    print(ex4_a)
 
-    to_minimize_a = DFA(
-        {"A", "B", "C", "D", "E", "F", "G"},
-        {"a", "b"},
-        "A",
-        {"B", "D", "F", "G"},
-        to_minimize_t
-    )
-
-    print(canonize(minimize(to_minimize_a)))
+    automaton_to_graphviz(ex1_a, r"C:\Skola\SBAPR\minimization\ex1.dot")
+    automaton_to_graphviz(minimize(ex1_a), r"C:\Skola\SBAPR\minimization\ex1_min.dot")
+    automaton_to_graphviz(ex2_a, r"C:\Skola\SBAPR\minimization\ex2.dot")
+    automaton_to_graphviz(minimize(ex2_a), r"C:\Skola\SBAPR\minimization\ex2_min.dot")
+    automaton_to_graphviz(ex3_a, r"C:\Skola\SBAPR\minimization\ex3.dot")
+    automaton_to_graphviz(minimize(ex3_a), r"C:\Skola\SBAPR\minimization\ex3_min.dot")
+    automaton_to_graphviz(ex4_a, r"C:\Skola\SBAPR\minimization\ex4.dot")
+    automaton_to_graphviz(minimize(ex4_a), r"C:\Skola\SBAPR\minimization\ex4_min.dot")
+    automaton_to_graphviz(ex5_a, r"C:\Skola\SBAPR\minimization\ex5.dot")
+    automaton_to_graphviz(minimize(ex5_a), r"C:\Skola\SBAPR\minimization\ex5_min.dot")
+    automaton_to_graphviz(ex6_a, r"C:\Skola\SBAPR\minimization\ex6.dot")
+    automaton_to_graphviz(minimize(ex6_a), r"C:\Skola\SBAPR\minimization\ex6_min.dot")
+    automaton_to_graphviz(ex7_a, r"C:\Skola\SBAPR\minimization\ex7.dot")
+    automaton_to_graphviz(minimize(ex7_a), r"C:\Skola\SBAPR\minimization\ex7_min.dot")

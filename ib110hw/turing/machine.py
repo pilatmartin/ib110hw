@@ -19,6 +19,7 @@ TransitionFunction = Dict[str, Dict[str, Tuple[str, str, Direction]]]
 class Cell:
     """Represents one cell of a Turing machine memory tape.
     """
+
     def __init__(self,
                  value: str = "",
                  right: 'Cell' = None,
@@ -31,9 +32,10 @@ class Cell:
         return self.value if self.value else " "
 
 
-class Tape():
+class Tape:
     """Represents Turing machine memory tape as a linked list.
     """
+
     def __init__(self, start: Cell = Cell()):
         self.start = start
         self.current = start
@@ -54,7 +56,7 @@ class Tape():
         # ['a', 'b'] -> | a | b |
         str_cells = f"| {' | '.join([repr(c) for c in cells])} |\n"
 
-        # adds spaces to put the cursor (^) below the current cell
+        # adds spaces to put the cursor '^' below the current cell
         str_cursor = f"{' ' * (2 + cells.index(self.current) * 4)}^\n"
 
         return str_cells + str_cursor
@@ -105,7 +107,7 @@ class Tape():
         self.current = self.start
 
 
-class TuringMachine():
+class TuringMachine:
     """Represents Turing Machine
     """
 
@@ -141,7 +143,7 @@ class TuringMachine():
         self.max_steps = 100
 
     def get_transition(self, state: str, read: str) -> Tuple[str, str, Direction]:
-        return self.transition_function.get(state, {}).get(read, None) 
+        return self.transition_function.get(state, {}).get(read, None)
 
     def add_state(self,
                   state: str,
@@ -156,6 +158,7 @@ class TuringMachine():
 
         Returns:
             bool: False if the state is already present or 'is_acc' and 'is_rej' arguments are both True.
+                  True otherwise.
         """
         if state in self.states or (is_acc and is_rej):
             return False
@@ -178,7 +181,7 @@ class TuringMachine():
         Returns:
             bool: Returns True if the state was added successfully, False otherwise.
         """
-        if not state in self.states:
+        if state not in self.states:
             return False
 
         if state in self.acc_states:
@@ -217,18 +220,17 @@ class TuringMachine():
             bool: False if the machine rejects the word or exceeds the 'max_steps' value, True otherwise.
         """
         state: str = self.initial_state
-        write: str = self.start_symbol
         steps: int = 1
         output_file = None
 
         def print_automaton_state():
             row = self.get_transition(state, self.tape.current.value)
-            rule_str = f"{steps if row else steps-1}. {(state, self.tape.current.value)} -> {row}\n"
+            rule_str = f"{steps if row else steps - 1}. {(state, self.tape.current.value)} -> {row}\n"
 
             if output_file:
                 output_file.write(rule_str)
                 output_file.write(repr(self.tape))
-                output_file.write(f"\n{'='*40}\n\n")
+                output_file.write(f"\n{'=' * 40}\n\n")
 
             if to_console:
                 system("cls")
@@ -244,7 +246,6 @@ class TuringMachine():
 
         if to_file:
             output_file = open(path, "w")
-
 
         while steps <= self.max_steps:
             print_automaton_state()
@@ -277,7 +278,7 @@ if __name__ == "__main__":
     fn: TransitionFunction = {
         "init": {
             ">": ("findA", ">", Direction.RIGHT)
-            },
+        },
         "space": {
             "a": ("writeA", "", Direction.RIGHT),
             "b": ("writeB", "", Direction.RIGHT),
