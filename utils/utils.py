@@ -4,6 +4,7 @@ from ib110hw.automaton.fa import FA
 from ib110hw.automaton.nfa import NFA, NFATransitions
 from ib110hw.automaton.dfa import DFA
 from minimization_examples import *
+from determinization_examples import *
 from collections import deque
 
 
@@ -16,25 +17,23 @@ def automaton_to_graphviz(automaton: Union[NFA, DFA], path: str) -> None:
         automaton (Union[NFA, DFA]): Automaton to be converted.
         path (str): Path where the file will be created.
     """
-    with open(path, "w") as file:
-        file.write(
-            f"""digraph G {{\n\t_init[shape=none]\n\t_init[label=\"\"]\n\t_init -> {automaton.initial_state}\n"""
-        )
+    with open(path, "w", encoding="utf-8") as file:
+        file.write("digraph G {\n")
+        file.write("\t__init__[shape=none label=\"\"]\n")
+        file.write(f"\t__init__ -> {automaton.initial_state}\n")
 
         for s_from in automaton.states:
             for symbol in automaton.alphabet:
-                transitions = automaton.transitions
-
-                if s_from not in transitions or symbol not in transitions[s_from]:
+                s_to = automaton.get_transition(s_from, symbol)
+                if not s_to and not s_from not in automaton.transitions.keys():
+                    file.write(f"\t{s_from}\n")
                     continue
 
-                if not (s_to := automaton.get_transition(s_from, symbol)):
-                    file.write(f"\t{s_from};\n")
-                    continue
-
-                file.write(
-                    f"\t{s_from} -> {str(s_to).replace(chr(39), '')}[label={symbol}];\n"
-                )
+                if isinstance(automaton, NFA):
+                    for state in s_to:
+                        file.write(f"\t{s_from} -> {state}[label=\"{'ε' if not symbol else symbol}\"]\n")
+                else:
+                    file.write(f"\t{s_from} -> {s_to}[label={'ε' if not symbol else symbol}]\n")
 
         for fin_state in automaton.final_states:
             file.write(f"\t{fin_state} [shape=doublecircle]\n")
@@ -80,7 +79,7 @@ def determinize(automaton: NFA) -> DFA:
             for s in state:
                 new_state = new_state.union(automaton.get_transition(s, key))
 
-            det_transitions[str_state][key] = f"{''.join(sorted(new_state))}"
+            det_transitions[str_state][key] = ''.join(sorted(new_state))
             states.append(new_state)
 
     return DFA(states=det_states,
@@ -116,11 +115,11 @@ def remove_empty_transitions(automaton: NFA) -> NFA:
     )
 
     # next1
-    for state in automaton.transitions:
+    for state in automaton.states:
         next1[state] = {state}.union(automaton.get_transition(state, ""))
 
         for next_state in automaton.get_transition(state, ""):
-            next1[state] = next1[state].union(next1[next_state])
+            next1[state] = next1[state].union(next1.get(next_state, set()))
 
     # next2
     for state in next1:
@@ -134,7 +133,7 @@ def remove_empty_transitions(automaton: NFA) -> NFA:
             next2_transition = {*result.get_transition(state, symbol)}
 
             for next_state in next2_transition:
-                result.add_transition(state, next1[next_state], symbol)
+                result.add_transition(state, next1.get(next_state, set()), symbol)
 
     return result
 
@@ -311,8 +310,14 @@ def canonize(automaton: DFA) -> DFA:
 
 
 def compare_automatons(a1: Union[NFA, DFA], a2: Union[NFA, DFA]) -> bool:
-    a1 = canonize(minimize(determinize(a1)))
-    a2 = canonize(minimize(determinize(a2)))
+    if isinstance(a1, NFA):
+        a1 = determinize(a1)
+
+    if isinstance(a2, NFA):
+        a2 = determinize(a2)
+
+    a1 = canonize(minimize(a1))
+    a2 = canonize(minimize(a2))
 
     return a1.states == a2.states and \
            a1.final_states == a2.final_states and \
@@ -326,17 +331,28 @@ if __name__ == "__main__":
     print(ex3_a)
     print(ex4_a)
 
-    automaton_to_graphviz(ex1_a, r"C:\Skola\SBAPR\minimization\ex1.dot")
-    automaton_to_graphviz(minimize(ex1_a), r"C:\Skola\SBAPR\minimization\ex1_min.dot")
-    automaton_to_graphviz(ex2_a, r"C:\Skola\SBAPR\minimization\ex2.dot")
-    automaton_to_graphviz(minimize(ex2_a), r"C:\Skola\SBAPR\minimization\ex2_min.dot")
-    automaton_to_graphviz(ex3_a, r"C:\Skola\SBAPR\minimization\ex3.dot")
-    automaton_to_graphviz(minimize(ex3_a), r"C:\Skola\SBAPR\minimization\ex3_min.dot")
-    automaton_to_graphviz(ex4_a, r"C:\Skola\SBAPR\minimization\ex4.dot")
-    automaton_to_graphviz(minimize(ex4_a), r"C:\Skola\SBAPR\minimization\ex4_min.dot")
-    automaton_to_graphviz(ex5_a, r"C:\Skola\SBAPR\minimization\ex5.dot")
-    automaton_to_graphviz(minimize(ex5_a), r"C:\Skola\SBAPR\minimization\ex5_min.dot")
-    automaton_to_graphviz(ex6_a, r"C:\Skola\SBAPR\minimization\ex6.dot")
-    automaton_to_graphviz(minimize(ex6_a), r"C:\Skola\SBAPR\minimization\ex6_min.dot")
-    automaton_to_graphviz(ex7_a, r"C:\Skola\SBAPR\minimization\ex7.dot")
-    automaton_to_graphviz(minimize(ex7_a), r"C:\Skola\SBAPR\minimization\ex7_min.dot")
+    # automaton_to_graphviz(ex1_a, r"C:\Skola\SBAPR\minimization\ex1.dot")
+    # automaton_to_graphviz(minimize(ex1_a), r"C:\Skola\SBAPR\minimization\ex1_min.dot")
+    # automaton_to_graphviz(ex2_a, r"C:\Skola\SBAPR\minimization\ex2.dot")
+    # automaton_to_graphviz(minimize(ex2_a), r"C:\Skola\SBAPR\minimization\ex2_min.dot")
+    # automaton_to_graphviz(ex3_a, r"C:\Skola\SBAPR\minimization\ex3.dot")
+    # automaton_to_graphviz(minimize(ex3_a), r"C:\Skola\SBAPR\minimization\ex3_min.dot")
+    # automaton_to_graphviz(ex4_a, r"C:\Skola\SBAPR\minimization\ex4.dot")
+    # automaton_to_graphviz(minimize(ex4_a), r"C:\Skola\SBAPR\minimization\ex4_min.dot")
+    # automaton_to_graphviz(ex5_a, r"C:\Skola\SBAPR\minimization\ex5.dot")
+    # automaton_to_graphviz(minimize(ex5_a), r"C:\Skola\SBAPR\minimization\ex5_min.dot")
+    # automaton_to_graphviz(ex6_a, r"C:\Skola\SBAPR\minimization\ex6.dot")
+    # automaton_to_graphviz(minimize(ex6_a), r"C:\Skola\SBAPR\minimization\ex6_min.dot")
+    # automaton_to_graphviz(ex7_a, r"C:\Skola\SBAPR\minimization\ex7.dot")
+    # automaton_to_graphviz(minimize(ex7_a), r"C:\Skola\SBAPR\minimization\ex7_min.dot")
+
+    automaton_to_graphviz(star_a, r"C:\Skola\SBAPR\determinization\star.dot")
+    automaton_to_graphviz(determinize(star_a), r"C:\Skola\SBAPR\determinization\star_det.dot")
+    automaton_to_graphviz(star2_a, r"C:\Skola\SBAPR\determinization\star2.dot")
+    automaton_to_graphviz(determinize(star2_a), r"C:\Skola\SBAPR\determinization\star2_det.dot")
+    automaton_to_graphviz(star3_a, r"C:\Skola\SBAPR\determinization\star3.dot")
+    automaton_to_graphviz(determinize(star3_a), r"C:\Skola\SBAPR\determinization\star3_det.dot")
+    automaton_to_graphviz(idk1_a, r"C:\Skola\SBAPR\determinization\idk1.dot")
+    automaton_to_graphviz(determinize(idk1_a), r"C:\Skola\SBAPR\determinization\idk1_det.dot")
+    automaton_to_graphviz(complete_a, r"C:\Skola\SBAPR\determinization\complete.dot")
+    automaton_to_graphviz(determinize(complete_a), r"C:\Skola\SBAPR\determinization\complete_det.dot")

@@ -41,7 +41,7 @@ class FA:
 
             for t in self.transitions.values():
                 for next_val in t.values():
-                    width = len(next_val) if automaton_type == "DFA" else f"{{','.join(sorted(next_val))}}"
+                    width = len(next_val) if automaton_type == "DFA" else len(f"{{','.join(sorted(next_val))}}")
                     max_cell_width = max(max_cell_width, width)
 
             # add 4 for spaces on both sides

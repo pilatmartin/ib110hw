@@ -267,9 +267,7 @@ class TuringMachine:
         close()
 
         print(f"Exceeded the maximum allowed steps. ({self.max_steps})")
-        print(
-            "You change the default value by setting the 'max_steps' property of this automaton."
-        )
+        print("You change the default value by setting the 'max_steps' property of this automaton.")
 
         return False
 
