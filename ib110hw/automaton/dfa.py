@@ -42,6 +42,29 @@ class DFA(FA):
         """
         return self.transitions.get(state_from, {}).get(symbol, None)
 
+    def set_transition(self, state_from: str, state_to: str, symbol: str) -> bool:
+        """
+        Adds/changes transition to automaton. And returns bool value based on success.
+        If the automaton already contains transition from 'state_from' by 'symbol', it will be overwritten.
+
+        Args:
+            state_from (_type_): State name where the transition starts.
+            state_to (_type_): State name where the transition ends.
+            symbol (_type_): Transition symbol.
+
+        Returns:
+            bool: True if transition was added, False otherwise.
+        """
+        if not {state_from, state_to}.issubset(self.states) or not symbol or symbol not in self.alphabet:
+            return False
+
+        if not self.transitions[state_from]:
+            self.transitions[state_from] = {symbol: state_to}
+        else:
+            self.transitions[state_from][symbol] = state_to
+
+        return True
+
     def add_transition(self, state_from: str, state_to: str,
                        symbol: str) -> bool:
         """

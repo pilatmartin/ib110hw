@@ -1,7 +1,7 @@
 from ib110hw.automaton.nfa import NFA
 from hypothesis import given, assume
 from hypothesis.strategies import integers, sets, characters, composite, DrawFn
-from .generation import r_nfa
+from tests.examples.generation import r_nfa
 
 
 @composite
@@ -36,7 +36,6 @@ def r_test_nfa(
     assume(diff and diff != {r_automaton.initial_state})
 
     return r_automaton
-
 
 
 @given(r_test_nfa())
@@ -130,7 +129,3 @@ def test_remove_transition(automaton: NFA) -> None:
     automaton.add_transition("test_state", {"test_state", "test_second_state"}, "a")
     assert automaton.remove_transition("test_state", "test_state", "a")
     assert automaton.get_transition("test_state", "a") == {"test_second_state"}
-
-
-def is_accepted() -> None:
-    pass

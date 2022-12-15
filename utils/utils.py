@@ -3,8 +3,8 @@ from typing import Union, Set, Deque, Dict, List
 from ib110hw.automaton.fa import FA
 from ib110hw.automaton.nfa import NFA, NFATransitions
 from ib110hw.automaton.dfa import DFA
-from minimization_examples import *
-from determinization_examples import *
+from tests.minimization.test_cases import *
+from tests.determinization.test_cases import *
 from collections import deque
 
 
@@ -78,6 +78,9 @@ def determinize(automaton: NFA) -> DFA:
             new_state = set()
             for s in state:
                 new_state = new_state.union(automaton.get_transition(s, key))
+
+            if not new_state:
+                continue
 
             det_transitions[str_state][key] = ''.join(sorted(new_state))
             states.append(new_state)
@@ -185,7 +188,6 @@ def minimize(automaton: DFA) -> DFA:
     Returns:
         DFA: Minimized version of the provided automaton.
     """
-
     def get_groups(_transitions: DFATransitions) -> List[Set[str]]:
         new_groups = {}
 
@@ -209,7 +211,7 @@ def minimize(automaton: DFA) -> DFA:
 
                 new_groups[group_key].add(_state)
 
-        return list(new_groups.values())
+        return [new_groups[key] for key in sorted(new_groups.keys())]
 
     minimized_transitions: DFATransitions = {}
     reachable: DFA = remove_unreachable_states(automaton)
@@ -243,10 +245,12 @@ def minimize(automaton: DFA) -> DFA:
 
                     marked_transitions[state][symbol] = f"{index}"
 
-        if len(groups) == len(groups := get_groups(marked_transitions)):
+        prev_len = len(groups)
+        groups = get_groups(marked_transitions)
+        if prev_len == len(groups):
             break
 
-    result.states = set(map(lambda i: f"{i}", range(0, len(groups))))
+    result.states = set([f"{i}" for i in range(0, len(groups))])
 
     for index in range(len(groups)):
         if groups[index].intersection(reachable.final_states):
@@ -271,42 +275,43 @@ def canonize(automaton: DFA) -> DFA:
     Returns:
         Canonical form of the provided automaton.
     """
-    ordered_states: List[str] = []
-    for state in automaton.transitions.keys():
-        if state not in ordered_states:
-            ordered_states.append(state)
+    renamed = {}
+    states = deque()
+    states.append(automaton.initial_state)
 
-        for symbol in automaton.transitions[state].keys():
-            if automaton.transitions[state][symbol] not in ordered_states:
-                ordered_states.append(automaton.transitions[state][symbol])
+    # used for renaming the states
+    rank = 0
 
-    # append states that are not in the transitions
-    ordered_states.extend([state for state in sorted(automaton.states) if state not in ordered_states])
+    while states:
+        current_state = states.popleft()
+        renamed[current_state] = f"{rank}"
 
-    result_transitions: DFATransitions = {}
-    result_final_states: Set[str] = set()
-    result_initial_state = ""
-    for state in ordered_states:
-        new_state = f"{ordered_states.index(state)}"
-        result_transitions[new_state] = {}
+        for symbol in sorted(automaton.alphabet):
+            next_state = automaton.get_transition(current_state, symbol)
+            if next_state in renamed.keys():
+                continue
+            states.append(next_state)
 
-        if state == automaton.initial_state:
-            result_initial_state = new_state
+        rank += 1
 
-        if state in automaton.final_states:
-            result_final_states.add(new_state)
+    renamed_transitions = {
+        renamed[state]: automaton.transitions[state] for state in automaton.transitions.keys()
+    }
 
-        for symbol in automaton.transitions[state].keys():
-            new_next_state = f"{ordered_states.index(automaton.transitions[state][symbol])}"
-            result_transitions[new_state][symbol] = new_next_state
+    for state in renamed_transitions.keys():
+        for symbol in renamed_transitions[state].keys():
+            prev = renamed_transitions[state][symbol]
+            renamed_transitions[state][symbol] = renamed[prev]
 
-    return DFA(
-        set(map(lambda i: f"{i}", range(0, len(ordered_states)))),
+    result = DFA(
+        set([renamed[state] for state in automaton.states]),
         automaton.alphabet,
-        result_initial_state,
-        result_final_states,
-        result_transitions
+        renamed[automaton.initial_state],
+        set([renamed[state] for state in automaton.final_states]),
+        renamed_transitions
     )
+
+    return result
 
 
 def compare_automatons(a1: Union[NFA, DFA], a2: Union[NFA, DFA]) -> bool:

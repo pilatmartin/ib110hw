@@ -2,7 +2,7 @@ from random import randint, choice, sample
 from typing import Set, List
 from ib110hw.automaton.dfa import DFA
 from ib110hw.automaton.nfa import NFA
-from utils.utils import automaton_to_graphviz, remove_unreachable_states, minimize, canonize
+from utils.utils import automaton_to_graphviz, remove_unreachable_states, minimize, canonize, determinize
 
 
 def r_states(min_states: int, max_states: int) -> List[str]:
@@ -127,7 +127,7 @@ def r_nfa(min_deg: int,
 
 if __name__ == "__main__":
     r_dfa_automaton = r_dfa(
-        min_deg=1,
+        min_deg=2,
         max_deg=3,
         min_states=3,
         max_states=8,
@@ -143,17 +143,19 @@ if __name__ == "__main__":
     print(r_dfa_can := canonize(r_dfa_min))
 
     r_nfa_automaton = r_nfa(
-        min_deg=1,
-        max_deg=3,
-        min_states=3,
-        max_states=8,
-        min_fin_states=1,
-        max_fin_states=3,
+        min_deg=2,
+        max_deg=4,
+        min_states=10,
+        max_states=20,
+        min_fin_states=5,
+        max_fin_states=10,
         alphabet={"a", "b", "c", "d"}
     )
     print(r_nfa_automaton)
     r_nfa_reachable = remove_unreachable_states(r_nfa_automaton)
     print(r_nfa_reachable)
+
+    r_nfa_determinized = determinize(r_nfa_automaton)
 
     # r_name = f"r_dfa_{randint(0, 10 ** 10)}"
     # automaton_to_graphviz(r_dfa_automaton, f"C:\\Skola\\SBAPR\\r_automatons\\r_dfa\\{r_name}.dot")
@@ -161,159 +163,160 @@ if __name__ == "__main__":
     # automaton_to_graphviz(r_dfa_min, f"C:\\Skola\\SBAPR\\r_automatons\\r_dfa\\{r_name}_min.dot")
     # automaton_to_graphviz(r_dfa_can, f"C:\\Skola\\SBAPR\\r_automatons\\r_dfa\\{r_name}_can.dot")
     #
-    # r_name = f"r_nfa_{randint(0, 10 ** 10)}"
-    # automaton_to_graphviz(r_nfa_automaton, f"C:\\Skola\\SBAPR\\r_automatons\\r_nfa\\{r_name}.dot")
-    # automaton_to_graphviz(r_nfa_reachable, f"C:\\Skola\\SBAPR\\r_automatons\\r_nfa\\{r_name}_reach.dot")
+    r_name = f"r_nfa_{randint(0, 10 ** 10)}"
+    automaton_to_graphviz(r_nfa_automaton, f"C:\\Skola\\SBAPR\\r_automatons\\r_nfa\\{r_name}.dot")
+    automaton_to_graphviz(r_nfa_reachable, f"C:\\Skola\\SBAPR\\r_automatons\\r_nfa\\{r_name}_reach.dot")
+    automaton_to_graphviz(r_nfa_determinized, f"C:\\Skola\\SBAPR\\r_automatons\\r_nfa\\{r_name}_det.dot")
 
-    to_minimize_t = {
-        "A": {
-            "a": "B",
-            "b": "C",
-        },
-        "B": {
-            "a": "D",
-            "b": "E",
-        },
-        "C": {
-            "a": "C",
-            "b": "C",
-        },
-        "D": {
-            "a": "B",
-            "b": "E",
-        },
-        "E": {
-            "a": "F",
-            "b": "E",
-        },
-        "F": {
-            "a": "G",
-            "b": "E",
-        },
-        "G": {
-            "a": "D",
-            "b": "E",
-        },
-    }
-
-    to_minimize_a = DFA(
-        {"A", "B", "C", "D", "E", "F", "G"},
-        {"a", "b"},
-        "A",
-        {"B", "D", "F", "G"},
-        to_minimize_t
-    )
-
-    to_minimize_t2 = {
-        "1": {
-            "a": "2",
-            "b": "4",
-        },
-        "2": {
-            "a": "4",
-            "b": "3",
-        },
-        "3": {
-            "a": "3",
-            "b": "6",
-        },
-        "4": {
-            "a": "4",
-            "b": "5",
-        },
-        "5": {
-            "a": "5",
-            "b": "5",
-        },
-        "6": {
-            "a": "2",
-            "b": "5",
-        },
-    }
-
-    to_minimize_a2 = DFA(
-        {"1", "2", "3", "4", "5", "6"},
-        {"a", "b"},
-        "1",
-        {"3", "5"},
-        to_minimize_t2
-    )
-
-    to_minimize_t3 = {
-        "A": {
-            "a": "B",
-            "b": "D",
-        },
-        "B": {
-            "a": "D",
-            "b": "C",
-        },
-        "C": {
-            "a": "C",
-            "b": "F",
-        },
-        "D": {
-            "a": "D",
-            "b": "E",
-        },
-        "E": {
-            "a": "E",
-            "b": "E",
-        },
-        "F": {
-            "a": "B",
-            "b": "E",
-        },
-    }
-
-    to_minimize_a3 = DFA(
-        {"A", "B", "C", "D", "E", "F"},
-        {"a", "b"},
-        "A",
-        {"C", "E"},
-        to_minimize_t3
-    )
-
-    print(canonize(minimize(to_minimize_a)))
-    # print(to_minimize_a2)
-    print(canonize(minimize(to_minimize_a2)))
-    # print(minimize_2(to_minimize_a2))
-    print(canonize(minimize(to_minimize_a3)))
-
-    to_minimize_t4 = {
-        "1": {
-            "a": "2",
-            "b": "4",
-        },
-        "2": {
-            "a": "4",
-            "b": "3",
-        },
-        "3": {
-            "a": "3",
-            "b": "3",
-        },
-        "4": {
-            "a": "4",
-            "b": "5",
-        },
-        "5": {
-            "a": "5",
-            "b": "5",
-        },
-        "6": {
-            "a": "6",
-            "b": "5",
-        }
-    }
-
-    to_minimize_a4 = DFA(
-        {"1", "2", "3", "4", "5", "6"},
-        {"a", "b"},
-        "1",
-        {"3", "5"},
-        to_minimize_t4
-    )
-
-    automaton_to_graphviz(to_minimize_a4, f"C:\\Skola\\SBAPR\\r_automatons\\r_dfa\\to_minimize_a4.dot")
-    automaton_to_graphviz(minimize(to_minimize_a4), f"C:\\Skola\\SBAPR\\r_automatons\\r_dfa\\minimized_a4.dot")
+    # to_minimize_t = {
+    #     "A": {
+    #         "a": "B",
+    #         "b": "C",
+    #     },
+    #     "B": {
+    #         "a": "D",
+    #         "b": "E",
+    #     },
+    #     "C": {
+    #         "a": "C",
+    #         "b": "C",
+    #     },
+    #     "D": {
+    #         "a": "B",
+    #         "b": "E",
+    #     },
+    #     "E": {
+    #         "a": "F",
+    #         "b": "E",
+    #     },
+    #     "F": {
+    #         "a": "G",
+    #         "b": "E",
+    #     },
+    #     "G": {
+    #         "a": "D",
+    #         "b": "E",
+    #     },
+    # }
+    #
+    # to_minimize_a = DFA(
+    #     {"A", "B", "C", "D", "E", "F", "G"},
+    #     {"a", "b"},
+    #     "A",
+    #     {"B", "D", "F", "G"},
+    #     to_minimize_t
+    # )
+    #
+    # to_minimize_t2 = {
+    #     "1": {
+    #         "a": "2",
+    #         "b": "4",
+    #     },
+    #     "2": {
+    #         "a": "4",
+    #         "b": "3",
+    #     },
+    #     "3": {
+    #         "a": "3",
+    #         "b": "6",
+    #     },
+    #     "4": {
+    #         "a": "4",
+    #         "b": "5",
+    #     },
+    #     "5": {
+    #         "a": "5",
+    #         "b": "5",
+    #     },
+    #     "6": {
+    #         "a": "2",
+    #         "b": "5",
+    #     },
+    # }
+    #
+    # to_minimize_a2 = DFA(
+    #     {"1", "2", "3", "4", "5", "6"},
+    #     {"a", "b"},
+    #     "1",
+    #     {"3", "5"},
+    #     to_minimize_t2
+    # )
+    #
+    # to_minimize_t3 = {
+    #     "A": {
+    #         "a": "B",
+    #         "b": "D",
+    #     },
+    #     "B": {
+    #         "a": "D",
+    #         "b": "C",
+    #     },
+    #     "C": {
+    #         "a": "C",
+    #         "b": "F",
+    #     },
+    #     "D": {
+    #         "a": "D",
+    #         "b": "E",
+    #     },
+    #     "E": {
+    #         "a": "E",
+    #         "b": "E",
+    #     },
+    #     "F": {
+    #         "a": "B",
+    #         "b": "E",
+    #     },
+    # }
+    #
+    # to_minimize_a3 = DFA(
+    #     {"A", "B", "C", "D", "E", "F"},
+    #     {"a", "b"},
+    #     "A",
+    #     {"C", "E"},
+    #     to_minimize_t3
+    # )
+    #
+    # print(canonize(minimize(to_minimize_a)))
+    # # print(to_minimize_a2)
+    # print(canonize(minimize(to_minimize_a2)))
+    # # print(minimize_2(to_minimize_a2))
+    # print(canonize(minimize(to_minimize_a3)))
+    #
+    # to_minimize_t4 = {
+    #     "1": {
+    #         "a": "2",
+    #         "b": "4",
+    #     },
+    #     "2": {
+    #         "a": "4",
+    #         "b": "3",
+    #     },
+    #     "3": {
+    #         "a": "3",
+    #         "b": "3",
+    #     },
+    #     "4": {
+    #         "a": "4",
+    #         "b": "5",
+    #     },
+    #     "5": {
+    #         "a": "5",
+    #         "b": "5",
+    #     },
+    #     "6": {
+    #         "a": "6",
+    #         "b": "5",
+    #     }
+    # }
+    #
+    # to_minimize_a4 = DFA(
+    #     {"1", "2", "3", "4", "5", "6"},
+    #     {"a", "b"},
+    #     "1",
+    #     {"3", "5"},
+    #     to_minimize_t4
+    # )
+    #
+    # automaton_to_graphviz(to_minimize_a4, f"C:\\Skola\\SBAPR\\r_automatons\\r_dfa\\to_minimize_a4.dot")
+    # automaton_to_graphviz(minimize(to_minimize_a4), f"C:\\Skola\\SBAPR\\r_automatons\\r_dfa\\minimized_a4.dot")

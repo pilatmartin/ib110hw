@@ -1,7 +1,7 @@
 from ib110hw.automaton.dfa import DFA
 from hypothesis import given, assume
 from hypothesis.strategies import integers, sets, characters, composite, DrawFn
-from .generation import r_dfa
+from tests.examples.generation import r_dfa
 
 
 @composite
@@ -117,14 +117,3 @@ def test_remove_transition(automaton: DFA) -> None:
     assert not automaton.remove_transition("not_exists", "a")
     assert automaton.remove_transition("test_state", "a")
     assert not automaton.get_transition("test_state", "a")
-
-
-@given(r_test_dfa())
-def test_is_accepted(automaton: DFA) -> None:
-    pass
-
-
-# TODO
-def __find_accepting_word__(automaton: DFA) -> str:
-    visited = {s: False for s in automaton.states}
-    pass
