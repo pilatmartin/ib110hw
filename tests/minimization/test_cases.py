@@ -1,6 +1,6 @@
 from ib110hw.automaton.dfa import DFA, DFATransitions
 
-ex1_t: DFATransitions = {
+ex1_transitions: DFATransitions = {
     "0": {
         "a": "1",
         "b": "2",
@@ -23,7 +23,7 @@ ex1_t: DFATransitions = {
     }
 }
 
-ex1_t_exp: DFATransitions = {
+ex1_transitions_expected: DFATransitions = {
     "02": {
         "a": "1",
         "b": "02",
@@ -42,23 +42,23 @@ ex1_t_exp: DFATransitions = {
     },
 }
 
-ex1_a: DFA = DFA(
+ex1_automaton: DFA = DFA(
     {"0", "1", "2", "3", "4"},
     {"a", "b"},
     "0",
     {"4"},
-    ex1_t
+    ex1_transitions
 )
 
-ex1_a_exp: DFA = DFA(
+ex1_automaton_expected: DFA = DFA(
     {"02", "1", "3", "4"},
     {"a", "b"},
     "02",
     {"4"},
-    ex1_t_exp,
+    ex1_transitions_expected,
 )
 
-ex2_t: DFATransitions = {
+ex2_transitions: DFATransitions = {
     "0": {
         "a": "1",
         "b": "0",
@@ -77,15 +77,34 @@ ex2_t: DFATransitions = {
     }
 }
 
-ex2_a: DFA = DFA(
+ex2_transitions_expected: DFATransitions = {
+    "0": {
+        "a": "12",
+        "b": "0",
+    },
+    "12": {
+        "a": "12",
+        "b": "12",
+    },
+}
+
+ex2_automaton: DFA = DFA(
     {"0", "1", "2", "3"},
     {"a", "b"},
     "0",
     {"1", "2"},
-    ex2_t
+    ex2_transitions
 )
 
-ex3_t: DFATransitions = {
+ex2_automaton_expected: DFA = DFA(
+    {"0", "12"},
+    {"a", "b"},
+    "0",
+    {"12"},
+    ex2_transitions_expected
+)
+
+ex3_transitions: DFATransitions = {
     "0": {
         "a": "1",
         "b": "3",
@@ -108,15 +127,38 @@ ex3_t: DFATransitions = {
     },
 }
 
-ex3_a: DFA = DFA(
+ex3_transitions_expected: DFATransitions = {
+    "0": {
+        "a": "123",
+        "b": "123",
+    },
+    "123": {
+        "a": "123",
+        "b": "4",
+    },
+    "4": {
+        "a": "4",
+        "b": "4",
+    }
+}
+
+ex3_automaton: DFA = DFA(
     {"0", "1", "2", "3", "4"},
     {"a", "b"},
     "0",
     {"4"},
-    ex3_t
+    ex3_transitions
 )
 
-ex4_t: DFATransitions = {
+ex3_automaton_expected: DFA = DFA(
+    {"0", "123", "4"},
+    {"a", "b"},
+    "0",
+    {"4"},
+    ex3_transitions_expected,
+)
+
+ex4_transitions: DFATransitions = {
     "0": {
         "a": "1",
         "b": "2",
@@ -143,15 +185,38 @@ ex4_t: DFATransitions = {
     },
 }
 
-ex4_a: DFA = DFA(
+ex4_transition_expected: DFATransitions = {
+    "0": {
+        "a": "125",
+        "b": "125",
+    },
+    "125": {
+        "a": "125",
+        "b": "34",
+    },
+    "34": {
+        "a": "34",
+        "b": "34",
+    },
+}
+
+ex4_automaton: DFA = DFA(
     {"0", "1", "2", "3", "4", "5"},
     {"a", "b"},
     "0",
     {"3", "4"},
-    ex4_t
+    ex4_transitions
 )
 
-ex5_t = {
+ex4_automaton_expected: DFA = DFA(
+    {"0", "125", "34"},
+    {"a", "b"},
+    "0",
+    {"34"},
+    ex4_transition_expected,
+)
+
+ex5_transitions = {
     "A": {
         "a": "B",
         "b": "C",
@@ -182,15 +247,41 @@ ex5_t = {
     },
 }
 
-ex5_a = DFA(
+ex5_transitions_expected: DFATransitions = {
+    "A": {
+        "a": "BDFG",
+        "b": "C",
+    },
+    "C": {
+        "a": "C",
+        "b": "C",
+    },
+    "BDFG": {
+        "a": "BDFG",
+        "b": "E",
+    },
+    "E": {
+        "a": "BDFG",
+        "b": "E",
+    }
+}
+
+ex5_automaton = DFA(
     {"A", "B", "C", "D", "E", "F", "G"},
     {"a", "b"},
     "A",
     {"B", "D", "F", "G"},
-    ex5_t
+    ex5_transitions
+)
+ex5_automaton_expected: DFA = DFA(
+    {"A", "C", "E", "BDFG"},
+    {"a", "b"},
+    "A",
+    {"BDFG"},
+    ex5_transitions_expected,
 )
 
-ex6_t = {
+minimal_transitions: DFATransitions = {
     "1": {
         "a": "2",
         "b": "4",
@@ -217,15 +308,19 @@ ex6_t = {
     },
 }
 
-ex6_a = DFA(
+minimal_transitions_expected: DFATransitions = minimal_transitions
+
+minimal_automaton: DFA = DFA(
     {"1", "2", "3", "4", "5", "6"},
     {"a", "b"},
     "1",
     {"3", "5"},
-    ex6_t
+    minimal_transitions
 )
 
-ex7_t = {
+minimal_automaton_expected: DFA = minimal_automaton
+
+minimal2_transitions = {
     "A": {
         "a": "B",
         "b": "D",
@@ -252,10 +347,72 @@ ex7_t = {
     },
 }
 
-ex7_a = DFA(
+minimal2_transitions_expected: DFATransitions = minimal2_transitions
+
+minimal2_automaton: DFA = DFA(
     {"A", "B", "C", "D", "E", "F"},
     {"a", "b"},
     "A",
     {"C", "E"},
-    ex7_t
+    minimal2_transitions
+)
+
+minimal2_automaton_expected = minimal2_automaton
+
+two_equivalent_states_transitions: DFATransitions = {
+    "1": {
+        "a": "2",
+        "b": "2",
+    },
+    "2": {
+        "a": "1",
+        "b": "1",
+    },
+}
+
+two_equivalent_states_transitions_expected = {
+    "1": {
+        "a": "1",
+        "b": "1",
+    },
+}
+
+two_equivalent_states_automaton: DFA = DFA(
+    {"1", "2"},
+    {"a", "b"},
+    "1",
+    {"1", "2"},
+    two_equivalent_states_transitions,
+)
+
+two_equivalent_states_automaton_expected = DFA(
+    {"1"},
+    {"a", "b"},
+    "1",
+    {"1"},
+    two_equivalent_states_transitions_expected,
+)
+
+disjoint_transitions: DFATransitions = {
+    "1": {"a": "1"},
+}
+
+disjoint_transitions_expected: DFATransitions = {
+    "1": {"a": "1"},
+}
+
+disjoint_automaton: DFA = DFA(
+    {"1", "2", "3", "4", "5"},
+    {"a", "b"},
+    "1",
+    set(),
+    disjoint_transitions
+)
+
+disjoint_automaton_expected: DFA = DFA(
+    {"1"},
+    {"a", "b"},
+    "1",
+    set(),
+    disjoint_transitions_expected
 )

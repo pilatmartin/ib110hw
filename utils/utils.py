@@ -176,7 +176,7 @@ def remove_unreachable_states(automaton: Union[DFA, NFA]) -> Union[NFA, DFA]:
     return result
 
 
-# rewrite
+# consider refactor/rewrite
 def minimize(automaton: DFA) -> DFA:
     """
     Returns a minimized version of the provided automaton.
@@ -188,6 +188,7 @@ def minimize(automaton: DFA) -> DFA:
     Returns:
         DFA: Minimized version of the provided automaton.
     """
+
     def get_groups(_transitions: DFATransitions) -> List[Set[str]]:
         new_groups = {}
 
@@ -331,33 +332,4 @@ def compare_automatons(a1: Union[NFA, DFA], a2: Union[NFA, DFA]) -> bool:
 
 
 if __name__ == "__main__":
-    print(ex1_a)
-    print(ex2_a)
-    print(ex3_a)
-    print(ex4_a)
-
-    # automaton_to_graphviz(ex1_a, r"C:\Skola\SBAPR\minimization\ex1.dot")
-    # automaton_to_graphviz(minimize(ex1_a), r"C:\Skola\SBAPR\minimization\ex1_min.dot")
-    # automaton_to_graphviz(ex2_a, r"C:\Skola\SBAPR\minimization\ex2.dot")
-    # automaton_to_graphviz(minimize(ex2_a), r"C:\Skola\SBAPR\minimization\ex2_min.dot")
-    # automaton_to_graphviz(ex3_a, r"C:\Skola\SBAPR\minimization\ex3.dot")
-    # automaton_to_graphviz(minimize(ex3_a), r"C:\Skola\SBAPR\minimization\ex3_min.dot")
-    # automaton_to_graphviz(ex4_a, r"C:\Skola\SBAPR\minimization\ex4.dot")
-    # automaton_to_graphviz(minimize(ex4_a), r"C:\Skola\SBAPR\minimization\ex4_min.dot")
-    # automaton_to_graphviz(ex5_a, r"C:\Skola\SBAPR\minimization\ex5.dot")
-    # automaton_to_graphviz(minimize(ex5_a), r"C:\Skola\SBAPR\minimization\ex5_min.dot")
-    # automaton_to_graphviz(ex6_a, r"C:\Skola\SBAPR\minimization\ex6.dot")
-    # automaton_to_graphviz(minimize(ex6_a), r"C:\Skola\SBAPR\minimization\ex6_min.dot")
-    # automaton_to_graphviz(ex7_a, r"C:\Skola\SBAPR\minimization\ex7.dot")
-    # automaton_to_graphviz(minimize(ex7_a), r"C:\Skola\SBAPR\minimization\ex7_min.dot")
-
-    automaton_to_graphviz(star_a, r"C:\Skola\SBAPR\determinization\star.dot")
-    automaton_to_graphviz(determinize(star_a), r"C:\Skola\SBAPR\determinization\star_det.dot")
-    automaton_to_graphviz(star2_a, r"C:\Skola\SBAPR\determinization\star2.dot")
-    automaton_to_graphviz(determinize(star2_a), r"C:\Skola\SBAPR\determinization\star2_det.dot")
-    automaton_to_graphviz(star3_a, r"C:\Skola\SBAPR\determinization\star3.dot")
-    automaton_to_graphviz(determinize(star3_a), r"C:\Skola\SBAPR\determinization\star3_det.dot")
-    automaton_to_graphviz(idk1_a, r"C:\Skola\SBAPR\determinization\idk1.dot")
-    automaton_to_graphviz(determinize(idk1_a), r"C:\Skola\SBAPR\determinization\idk1_det.dot")
-    automaton_to_graphviz(complete_a, r"C:\Skola\SBAPR\determinization\complete.dot")
-    automaton_to_graphviz(determinize(complete_a), r"C:\Skola\SBAPR\determinization\complete_det.dot")
+    pass
