@@ -6,7 +6,7 @@ DFATransitions = Dict[str, Dict[str, str]]
 
 class DFA(FA):
     """
-    (Complete) Deterministic Finite Automaton.
+    Deterministic Finite Automaton.
     """
 
     def __init__(self, states: Set[str], alphabet: Set[str],
