@@ -160,10 +160,10 @@ tape.clear()        # |   |
 ## Turing Machine
 The following turing machine checks whether the input contains substring "101":
 ```python
-from ib110hw.turing.machine import TuringMachine, TransitionFunction
+from ib110hw.turing.deterministic_machine import DTM, DeterministicTransitions
 from ib110hw.turing.tape import Direction
 
-fn: TransitionFunction = {
+fn: DeterministicTransitions = {
     "init": {
         ">": ("findFst1", ">", Direction.RIGHT)
     },
@@ -182,7 +182,7 @@ fn: TransitionFunction = {
 }
 
 # setting tape is optional
-turing = TuringMachine(
+turing = DTM(
     states={ "init", "findFst1", "find0", "findSnd1" },
     acc_states={ "accept" },
     rej_states=set(),

@@ -1,6 +1,9 @@
 from enum import Enum
 from typing import List
 
+START_SYMBOL = ">"
+EMPTY_SYMBOL = ""
+
 
 class Direction(Enum):
     LEFT = -1
@@ -16,7 +19,7 @@ class Cell:
     """
 
     def __init__(self,
-                 value: str = "",
+                 value: str = EMPTY_SYMBOL,
                  right: 'Cell' = None,
                  left: 'Cell' = None) -> None:
         self.value = value
@@ -94,6 +97,19 @@ class Tape:
             self.move_right()
 
         self.current = self.start
+
+    def write_symbol(self, symbol: str) -> None:
+        """Overwrites the current cell with the provided symbol.
+
+        Args:
+            symbol (str): Symbol to be written on the current cell.
+        """
+        cell = self.current
+
+        if cell.value == START_SYMBOL:
+            return
+
+        self.current.value = symbol
 
     def clear(self) -> None:
         """Clears the tape contents and places the cursor on the start.
