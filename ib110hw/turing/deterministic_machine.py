@@ -5,7 +5,7 @@ from os import system, name
 from machine import TuringMachine
 from tape import Tape, Direction
 
-DeterministicTransitions = Dict[str, Dict[str, Tuple[str, str, Direction]]]
+DTMTransitions = Dict[str, Dict[str, Tuple[str, str, Direction]]]
 
 
 class DTM(TuringMachine):
@@ -16,7 +16,7 @@ class DTM(TuringMachine):
                  input_alphabet: Set[str],
                  acc_states: Set[str],
                  rej_states: Set[str] = set(),
-                 transition_function: DeterministicTransitions = {},
+                 transition_function: DTMTransitions = {},
                  tape: Tape = Tape(),
                  initial_state: str = "init",
                  start_symbol: str = ">",
@@ -62,6 +62,7 @@ class DTM(TuringMachine):
         state: str = self.initial_state
         steps: int = 1
         output_file = None
+        step_separator = f"\n{'=' * 40}\n\n"
 
         def clear_console() -> None:
             if name == "posix":
@@ -69,14 +70,20 @@ class DTM(TuringMachine):
             else:
                 system("cls")
 
-        def print_automaton_state() -> None:
+        def get_rule_string() -> str:
             row = self.get_transition(state, self.tape.current.value)
-            rule_str = f"{steps if row else steps - 1}. {(state, self.tape.current.value)} -> {row}\n"
+            step_index = steps if row else steps - 1
+            next_step = f"{state}, {self.tape.current.value}"
+
+            return f"{step_index}. ({next_step}) -> {row}\n"
+
+        def print_automaton_state() -> None:
+            rule_str = get_rule_string()
 
             if output_file:
                 output_file.write(rule_str)
                 output_file.write(repr(self.tape))
-                output_file.write(f"\n{'=' * 40}\n\n")
+                output_file.write(step_separator)
 
             if to_console:
                 clear_console()
@@ -116,3 +123,55 @@ class DTM(TuringMachine):
         print("You change the default value by setting the 'max_steps' property of this automaton.")
 
         return False
+
+
+if __name__ == "__main__":
+    fn: DTMTransitions = {
+        "init": {
+            ">": ("markLeft", ">", Direction.RIGHT),
+        },
+        "markLeft": {
+            "a": ("gotoEndA", "X", Direction.RIGHT),
+            "b": ("gotoEndB", "X", Direction.RIGHT),
+            "X": ("accept", "X", Direction.STAY),
+        },
+        "gotoEndA": {
+            "a": ("gotoEndA", "a", Direction.RIGHT),
+            "b": ("gotoEndA", "b", Direction.RIGHT),
+            "X": ("checkA", "X", Direction.LEFT),
+            "": ("checkA", "", Direction.LEFT),
+        },
+        "checkA": {
+            "a": ("gotoStart", "X", Direction.LEFT),
+            "b": ("reject", "b", Direction.STAY),
+            "X": ("accept", "X", Direction.STAY),
+        },
+        "gotoEndB": {
+            "a": ("gotoEndB", "a", Direction.RIGHT),
+            "b": ("gotoEndB", "b", Direction.RIGHT),
+            "X": ("checkB", "X", Direction.LEFT),
+            "": ("checkB", "", Direction.LEFT),
+        },
+        "checkB": {
+            "a": ("reject", "a", Direction.STAY),
+            "b": ("gotoStart", "X", Direction.LEFT),
+            "X": ("accept", "X", Direction.STAY),
+        },
+        "gotoStart": {
+            "a": ("gotoStart", "a", Direction.LEFT),
+            "b": ("gotoStart", "b", Direction.LEFT),
+            "X": ("markLeft", "X", Direction.RIGHT)
+        }
+    }
+
+    machine: DTM = DTM(
+        states={"init", "markLeft", "gotoEndA", "checkA", "gotoEndB", "checkB", "accept", "reject"},
+        input_alphabet={"a", "b"},
+        acc_states={"accept"},
+        rej_states={"reject"},
+        initial_state="init",
+        transition_function=fn
+    )
+
+    machine.tape.write(">aabbabbaa")
+    print(machine.simulate(delay=.2, to_file=True))

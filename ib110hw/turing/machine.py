@@ -2,7 +2,7 @@ from typing import Set
 
 
 class TuringMachine:
-    """Represents the Turing Machine
+    """Represents a abstract Turing machine class
     """
 
     def __init__(self,

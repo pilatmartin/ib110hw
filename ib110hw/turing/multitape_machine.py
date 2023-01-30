@@ -1,3 +1,4 @@
+import copy
 from typing import Set, Dict, Tuple, List
 from time import sleep
 from os import system, name
@@ -5,7 +6,7 @@ from os import system, name
 from machine import TuringMachine
 from tape import Tape, Direction
 
-MultitapeTransitions = Dict[int, Dict[str, Dict[int, Dict[str, Tuple[str, str, Direction]]]]]
+MTMTransitions = Dict[str, Dict[Tuple[str, ...], Tuple[str, Tuple[str, ...], List[Direction]]]]
 
 
 class MTM(TuringMachine):
@@ -16,17 +17,33 @@ class MTM(TuringMachine):
                  input_alphabet: Set[str],
                  acc_states: Set[str],
                  rej_states: Set[str] = set(),
-                 transition_function: MultitapeTransitions = {},
-                 tapes: List[Tape] = [Tape()],
+                 transition_function: MTMTransitions = {},
+                 tape_count: int = 2,
+                 tapes: List[Tape] = None,
                  initial_state: str = "init",
                  start_symbol: str = ">",
                  empty_symbol: str = ""):
         super().__init__(states, input_alphabet, acc_states, rej_states, initial_state, start_symbol, empty_symbol)
         self.transition_function = transition_function
-        self.tapes = tapes
+        # TODO: Figure out how to remove the copy
+        self.tapes = tapes or [copy.deepcopy(Tape()) for _ in range(tape_count)]
+        self.tape_count = tape_count or len(tapes)
 
-    def get_transition(self, index: int, state: str, read: str) -> Tuple[str, str, Direction]:
-        return self.transition_function.get(index, {}).get(state, {}).get(read, None)
+    def get_transition(self, state: str, read: Tuple[str, ...]) -> Tuple[str, Tuple[str, ...], List[Direction]]:
+        return self.transition_function.get(state, {}).get(read, None)
+
+    def write(self, input_str: str) -> None:
+        self.tapes[0].write(input_str)
+
+    def clear_tape(self, index: int) -> None:
+        self.tapes[index].clear()
+
+    def clear_tapes(self) -> None:
+        for tape in self.tapes:
+            tape.clear()
+
+    def get_current_symbols(self) -> Tuple[str, ...]:
+        return tuple((tape.current.value for tape in self.tapes))
 
     def simulate(self,
                  to_console: bool = True,
@@ -45,9 +62,9 @@ class MTM(TuringMachine):
             bool: False if the machine rejects the word or exceeds the 'max_steps' value, True otherwise.
         """
         state: str = self.initial_state
-        tape_index: int = 0
         steps: int = 1
         output_file = None
+        step_separator = f"\n{'=' * 40}\n\n"
 
         def clear_console() -> None:
             if name == "posix":
@@ -55,9 +72,15 @@ class MTM(TuringMachine):
             else:
                 system("cls")
 
+        def get_rule_string() -> str:
+            row = self.get_transition(state, self.get_current_symbols())
+            step_index = steps if row else steps - 1
+            next_step = f"{state}, {self.get_current_symbols()}"
+
+            return f"{step_index}. ({next_step}) -> {row}\n"
+
         def print_automaton_state() -> None:
-            row = self.get_transition(tape_index, state, self.tapes[tape_index].current.value)
-            rule_str = f"{steps if row else steps - 1}. {self.tapes[tape_index].current.value} -> {row}\n"
+            rule_str = get_rule_string()
 
             if output_file:
                 output_file.write(rule_str)
@@ -65,12 +88,14 @@ class MTM(TuringMachine):
                 for tape in self.tapes:
                     output_file.write(repr(tape))
 
-                output_file.write(f"\n{'=' * 40}\n\n")
+                output_file.write(step_separator)
 
             if to_console:
                 clear_console()
-                print(rule_str, "\n")
-                print("\n".join([repr(tape) for tape in self.tapes]))
+                print(rule_str, "\n\n")
+
+                for i, tape in enumerate(self.tapes):
+                    print(f"Tape {i}\n{repr(tape)}")
 
                 sleep(delay)
 
@@ -80,25 +105,30 @@ class MTM(TuringMachine):
             if output_file:
                 output_file.close()
 
+        # simulation itself
         if to_file:
             output_file = open(path, "w")
 
         while steps <= self.max_steps:
             print_automaton_state()
+
             if state in self.acc_states:
                 close()
                 return True
 
-            rule = self.get_transition(tape_index, state, self.tapes[tape_index].current.value)
+            read_symbols = tuple((tape.current.value for tape in self.tapes))
+            rule = self.get_transition(state, read_symbols)
 
             if not rule or rule[0] in self.rej_states:
                 close()
                 return False
 
             steps += 1
-            state, write, direction = rule
-            self.tapes[tape_index].current.value = write
-            self.tapes[tape_index].move(direction)
+            state, write, directions = rule
+
+            for direction, tape, symbol in zip(directions, self.tapes, write):
+                tape.write_symbol(symbol)
+                tape.move(direction)
 
         close()
 
@@ -109,13 +139,36 @@ class MTM(TuringMachine):
 
 
 if __name__ == "__main__":
-    idk: MultitapeTransitions = {
-        0: {
-            "init":
-                {
-                    0: {
-                        ">": ("state", ">", Direction.RIGHT)
-                    }
-                }
+    fn: MTMTransitions = {
+        "init": {
+            (">", ""): ("copy", (">", ""), [Direction.RIGHT, Direction.STAY])
+        },
+        "copy": {
+            ("a", ""): ("copy", ("a", "a"), [Direction.RIGHT, Direction.RIGHT]),
+            ("b", ""): ("copy", ("b", "b"), [Direction.RIGHT, Direction.RIGHT]),
+            ("", ""): ("goToStart", ("", ""), [Direction.LEFT, Direction.STAY]),
+        },
+        "goToStart": {
+            ("a", ""): ("goToStart", ("a", ""), [Direction.LEFT, Direction.STAY]),
+            ("b", ""): ("goToStart", ("b", ""), [Direction.LEFT, Direction.STAY]),
+            (">", ""): ("check", (">", ""), [Direction.RIGHT, Direction.LEFT])
+        },
+        "check": {
+            ("a", "a"): ("check", ("a", "a"), [Direction.RIGHT, Direction.LEFT]),
+            ("b", "b"): ("check", ("b", "b"), [Direction.RIGHT, Direction.LEFT]),
+            ("", ""): ("accept", ("", ""), [Direction.STAY, Direction.STAY]),
+            ("a", "b"): ("reject", ("a", "b"), [Direction.STAY, Direction.STAY]),
+            ("b", "a"): ("reject", ("b", "a"), [Direction.STAY, Direction.STAY]),
         }
     }
+
+    machine: MTM = MTM(
+        states={"init", "goToEnd", "goToStart", "check", "accept", "reject"},
+        initial_state="init",
+        input_alphabet={"a", "b"},
+        acc_states={"accept"},
+        rej_states={"reject"},
+        transition_function=fn)
+
+    machine.write(">aabbabbaa")
+    print(machine.simulate(delay=.2))

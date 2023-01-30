@@ -26,6 +26,7 @@ class FA:
 
         return f"alphabet: {alphabet_str}\nstates: {states_str}\nfinal states: {final_states_str}\n"
 
+    # TODO: Refactor repr
     def __repr_transitions__(self, automaton_type: Literal["DFA",
                                                            "NFA"]) -> str:
         def get_row_prefix(state: str):
