@@ -124,47 +124,48 @@ tape.clear()        # |   |
 ```
 ## Deterministic Turing Machine (DTM)
 The following DTM checks whether the input string is a palindrome:
+
 ```python
-from ib110hw.turing.deterministic_machine import DTM, DTMTransitions
+from ib110hw.turing.dtm import DTM, DTMTransitions
 from ib110hw.turing.tape import Direction
 
 fn: DTMTransitions = {
-        "init": {
-            ">": ("markLeft", ">", Direction.RIGHT),
-        },
-        "markLeft": {
-            "a": ("gotoEndA", "X", Direction.RIGHT),
-            "b": ("gotoEndB", "X", Direction.RIGHT),
-            "X": ("accept", "X", Direction.STAY),
-        },
-        "gotoEndA": {
-            "a": ("gotoEndA", "a", Direction.RIGHT),
-            "b": ("gotoEndA", "b", Direction.RIGHT),
-            "X": ("checkA", "X", Direction.LEFT),
-            "": ("checkA", "", Direction.LEFT),
-        },
-        "checkA": {
-            "a": ("gotoStart", "X", Direction.LEFT),
-            "b": ("reject", "b", Direction.STAY),
-            "X": ("accept", "X", Direction.STAY),
-        },
-        "gotoEndB": {
-            "a": ("gotoEndB", "a", Direction.RIGHT),
-            "b": ("gotoEndB", "b", Direction.RIGHT),
-            "X": ("checkB", "X", Direction.LEFT),
-            "": ("checkB", "", Direction.LEFT),
-        },
-        "checkB": {
-            "a": ("reject", "a", Direction.STAY),
-            "b": ("gotoStart", "X", Direction.LEFT),
-            "X": ("accept", "X", Direction.STAY),
-        },
-        "gotoStart": {
-            "a": ("gotoStart", "a", Direction.LEFT),
-            "b": ("gotoStart", "b", Direction.LEFT),
-            "X": ("markLeft", "X", Direction.RIGHT)
-        }
+    "init": {
+        ">": ("markLeft", ">", Direction.RIGHT),
+    },
+    "markLeft": {
+        "a": ("gotoEndA", "X", Direction.RIGHT),
+        "b": ("gotoEndB", "X", Direction.RIGHT),
+        "X": ("accept", "X", Direction.STAY),
+    },
+    "gotoEndA": {
+        "a": ("gotoEndA", "a", Direction.RIGHT),
+        "b": ("gotoEndA", "b", Direction.RIGHT),
+        "X": ("checkA", "X", Direction.LEFT),
+        "": ("checkA", "", Direction.LEFT),
+    },
+    "checkA": {
+        "a": ("gotoStart", "X", Direction.LEFT),
+        "b": ("reject", "b", Direction.STAY),
+        "X": ("accept", "X", Direction.STAY),
+    },
+    "gotoEndB": {
+        "a": ("gotoEndB", "a", Direction.RIGHT),
+        "b": ("gotoEndB", "b", Direction.RIGHT),
+        "X": ("checkB", "X", Direction.LEFT),
+        "": ("checkB", "", Direction.LEFT),
+    },
+    "checkB": {
+        "a": ("reject", "a", Direction.STAY),
+        "b": ("gotoStart", "X", Direction.LEFT),
+        "X": ("accept", "X", Direction.STAY),
+    },
+    "gotoStart": {
+        "a": ("gotoStart", "a", Direction.LEFT),
+        "b": ("gotoStart", "b", Direction.LEFT),
+        "X": ("markLeft", "X", Direction.RIGHT)
     }
+}
 
 machine: DTM = DTM(
     states={"init", "markLeft", "gotoEndA", "checkA", "gotoEndB", "checkB", "accept", "reject"},
@@ -195,30 +196,30 @@ function: DTMransitions = {
 The following MTM has the same function as the DTM above:
 
 ```python
-from ib110hw.turing.multitape_machine import MTM, MTMTransitions
+from ib110hw.turing.mtm import MTM, MTMTransitions
 from ib110hw.turing.tape import Direction
 
 function: MTMTransitions = {
-"init": {
-    (">", ""): ("copy", (">", ""), (Direction.RIGHT, Direction.STAY))
-},
-"copy": {
-    ("a", ""): ("copy", ("a", "a"), (Direction.RIGHT, Direction.RIGHT)),
-    ("b", ""): ("copy", ("b", "b"), (Direction.RIGHT, Direction.RIGHT)),
-    ("", ""): ("goToStart", ("", ""), (Direction.LEFT, Direction.STAY)),
-},
-"goToStart": {
-    ("a", ""): ("goToStart", ("a", ""), (Direction.LEFT, Direction.STAY)),
-    ("b", ""): ("goToStart", ("b", ""), (Direction.LEFT, Direction.STAY)),
-    (">", ""): ("check", (">", ""), (Direction.RIGHT, Direction.LEFT))
-},
-"check": {
-    ("a", "a"): ("check", ("a", "a"), (Direction.RIGHT, Direction.LEFT)),
-    ("b", "b"): ("check", ("b", "b"), (Direction.RIGHT, Direction.LEFT)),
-    ("", ""): ("accept", ("", ""), (Direction.STAY, Direction.STAY)),
-    ("a", "b"): ("reject", ("a", "b"), (Direction.STAY, Direction.STAY)),
-    ("b", "a"): ("reject", ("b", "a"), (Direction.STAY, Direction.STAY)),
-}
+    "init": {
+        (">", ""): ("copy", (">", ""), (Direction.RIGHT, Direction.STAY))
+    },
+    "copy": {
+        ("a", ""): ("copy", ("a", "a"), (Direction.RIGHT, Direction.RIGHT)),
+        ("b", ""): ("copy", ("b", "b"), (Direction.RIGHT, Direction.RIGHT)),
+        ("", ""): ("goToStart", ("", ""), (Direction.LEFT, Direction.STAY)),
+    },
+    "goToStart": {
+        ("a", ""): ("goToStart", ("a", ""), (Direction.LEFT, Direction.STAY)),
+        ("b", ""): ("goToStart", ("b", ""), (Direction.LEFT, Direction.STAY)),
+        (">", ""): ("check", (">", ""), (Direction.RIGHT, Direction.LEFT))
+    },
+    "check": {
+        ("a", "a"): ("check", ("a", "a"), (Direction.RIGHT, Direction.LEFT)),
+        ("b", "b"): ("check", ("b", "b"), (Direction.RIGHT, Direction.LEFT)),
+        ("", ""): ("accept", ("", ""), (Direction.STAY, Direction.STAY)),
+        ("a", "b"): ("reject", ("a", "b"), (Direction.STAY, Direction.STAY)),
+        ("b", "a"): ("reject", ("b", "a"), (Direction.STAY, Direction.STAY)),
+    }
 }
 
 machine: MTM = MTM(
@@ -256,7 +257,7 @@ If you want to look at the whole history, you can set parameter `to_file` to `Tr
 turing.simulate(to_console=False, to_file=True, path="~/my_simulation.txt") # True
 ```
 
-The `TuringMachine` class contains the attribute `max_steps` to avoid infinite looping. By default, it is set to 100. The calculation will halt if the simulation exceeds the value specified by this attribute. This can be an issue on larger inputs, so setting it to a bigger number may be needed.
+The `BaseTuringMachine` class contains the attribute `max_steps` to avoid infinite looping. By default, it is set to 100. The calculation will halt if the simulation exceeds the value specified by this attribute. This can be an issue on larger inputs, so setting it to a bigger number may be needed.
 ```python
 turing.max_steps = 200
 ```

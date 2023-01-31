@@ -1,35 +1,52 @@
-import copy
-from typing import Set, Dict, Tuple, List
+from copy import deepcopy
+from os import name, system
 from time import sleep
-from os import system, name
+from typing import Dict, List, Optional, Set, Tuple
 
-from machine import TuringMachine
-from tape import Tape, Direction
+from base import BaseTuringMachine
+from tape import Direction, Tape
 
-MTMTransitions = Dict[str, Dict[Tuple[str, ...], Tuple[str, Tuple[str, ...], Tuple[Direction, ...]]]]
+Symbols = Tuple[str, ...]
+Directions = Tuple[Direction, ...]
+
+MTMRule = Tuple[str, Symbols, Directions]
+MTMRules = Dict[Symbols, MTMRule]
+MTMTransitions = Dict[str, MTMRules]
 
 
-class MTM(TuringMachine):
+class MTM(BaseTuringMachine):
     """Represents a MULTI-TAPE Turing Machine"""
 
-    def __init__(self,
-                 states: Set[str],
-                 input_alphabet: Set[str],
-                 acc_states: Set[str],
-                 rej_states: Set[str] = set(),
-                 transition_function: MTMTransitions = {},
-                 tape_count: int = 2,
-                 tapes: List[Tape] = None,
-                 initial_state: str = "init",
-                 start_symbol: str = ">",
-                 empty_symbol: str = ""):
-        super().__init__(states, input_alphabet, acc_states, rej_states, initial_state, start_symbol, empty_symbol)
+    def __init__(
+        self,
+        states: Set[str],
+        input_alphabet: Set[str],
+        acc_states: Set[str],
+        rej_states: Set[str] = set(),
+        transition_function: MTMTransitions = None,
+        tape_count: int = 2,
+        tapes: List[Tape] = None,
+        initial_state: str = "init",
+        start_symbol: str = ">",
+        empty_symbol: str = "",
+    ):
+        if transition_function is None:
+            transition_function = {}
+        super().__init__(
+            states,
+            input_alphabet,
+            acc_states,
+            rej_states,
+            initial_state,
+            start_symbol,
+            empty_symbol,
+        )
         self.transition_function = transition_function
         # TODO: Figure out how to remove the copy
-        self.tapes = tapes or [copy.deepcopy(Tape()) for _ in range(tape_count)]
+        self.tapes = tapes or [deepcopy(Tape()) for _ in range(tape_count)]
         self.tape_count = tape_count or len(tapes)
 
-    def get_transition(self, state: str, read: Tuple[str, ...]) -> Tuple[str, Tuple[str, ...], List[Direction]]:
+    def get_transition(self, state: str, read: Symbols) -> Optional[MTMRule]:
         return self.transition_function.get(state, {}).get(read, None)
 
     def write(self, input_str: str) -> None:
@@ -42,15 +59,18 @@ class MTM(TuringMachine):
         for tape in self.tapes:
             tape.clear()
 
-    def get_current_symbols(self) -> Tuple[str, ...]:
+    def get_current_symbols(self) -> Symbols:
         return tuple((tape.current.value for tape in self.tapes))
 
-    def simulate(self,
-                 to_console: bool = True,
-                 to_file: bool = False,
-                 path: str = "simulation.txt",
-                 delay: float = 0.5) -> bool:
-        """ Simulates the machine on its current tape configuration.
+    # TODO Refactor simulation
+    def simulate(
+        self,
+        to_console: bool = True,
+        to_file: bool = False,
+        path: str = "simulation.txt",
+        delay: float = 0.5,
+    ) -> bool:
+        """Simulates the machine on its current tape configuration.
 
         Args:
             to_console (bool, optional): Set to False if you only want to see the result. Defaults to True.
@@ -133,16 +153,16 @@ class MTM(TuringMachine):
         close()
 
         print(f"Exceeded the maximum allowed steps. ({self.max_steps})")
-        print("You change the default value by setting the 'max_steps' property of this automaton.")
+        print(
+            "You change the default value by setting the 'max_steps' property of this automaton."
+        )
 
         return False
 
 
 if __name__ == "__main__":
     fn: MTMTransitions = {
-        "init": {
-            (">", ""): ("copy", (">", ""), [Direction.RIGHT, Direction.STAY])
-        },
+        "init": {(">", ""): ("copy", (">", ""), [Direction.RIGHT, Direction.STAY])},
         "copy": {
             ("a", ""): ("copy", ("a", "a"), (Direction.RIGHT, Direction.RIGHT)),
             ("b", ""): ("copy", ("b", "b"), (Direction.RIGHT, Direction.RIGHT)),
@@ -151,7 +171,7 @@ if __name__ == "__main__":
         "goToStart": {
             ("a", ""): ("goToStart", ("a", ""), (Direction.LEFT, Direction.STAY)),
             ("b", ""): ("goToStart", ("b", ""), (Direction.LEFT, Direction.STAY)),
-            (">", ""): ("check", (">", ""), (Direction.RIGHT, Direction.LEFT))
+            (">", ""): ("check", (">", ""), (Direction.RIGHT, Direction.LEFT)),
         },
         "check": {
             ("a", "a"): ("check", ("a", "a"), (Direction.RIGHT, Direction.LEFT)),
@@ -159,7 +179,7 @@ if __name__ == "__main__":
             ("", ""): ("accept", ("", ""), (Direction.STAY, Direction.STAY)),
             ("a", "b"): ("reject", ("a", "b"), (Direction.STAY, Direction.STAY)),
             ("b", "a"): ("reject", ("b", "a"), (Direction.STAY, Direction.STAY)),
-        }
+        },
     }
 
     machine: MTM = MTM(
@@ -168,7 +188,8 @@ if __name__ == "__main__":
         input_alphabet={"a", "b"},
         acc_states={"accept"},
         rej_states={"reject"},
-        transition_function=fn)
+        transition_function=fn,
+    )
 
     machine.write(">aabbabbaa")
-    print(machine.simulate(delay=.2))
+    print(machine.simulate(delay=0.2))

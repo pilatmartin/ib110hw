@@ -1,25 +1,66 @@
-from typing import Dict, Set, Optional
-from .fa import FA
+from typing import Dict, Optional, Set
 
-DFATransitions = Dict[str, Dict[str, str]]
+from base import BaseFiniteAutomaton
+
+DFARules = Dict[str, str]
+DFATransitions = Dict[str, DFARules]
 
 
-class DFA(FA):
+class DFA(BaseFiniteAutomaton):
     """
     Deterministic Finite Automaton.
     """
 
-    def __init__(self, states: Set[str], alphabet: Set[str],
-                 initial_state: str, final_states: Set[str],
-                 transitions: DFATransitions):
+    def __init__(
+        self,
+        states: Set[str],
+        alphabet: Set[str],
+        initial_state: str,
+        final_states: Set[str],
+        transitions: DFATransitions,
+    ):
         self.transitions = transitions
 
         super().__init__(states, alphabet, initial_state, final_states)
 
     def __repr__(self) -> str:
-        return super().__repr__() + "\n" + self.__repr_transitions__("DFA")
+        return super().__repr__() + "\n" + self.__repr_transitions__()
 
-    def get_transition(self, state_from: str, symbol: str) -> str:
+    def __repr_transitions__(self) -> str:
+        def get_max_cell_width() -> int:
+            max_cell_width = 5
+
+            for key, val in self.transitions.items():
+                for next_val in val.values():
+                    max_cell_width = max(max_cell_width, len(next_val), len(key))
+
+            # add 4 for spaces on both sides
+            return max_cell_width + 4
+
+        cell_width = get_max_cell_width()
+
+        # create header
+        header = f"{'DFA': ^{cell_width+5}}|"
+        for letter in sorted(self.alphabet):
+            header += f"{letter: ^{cell_width}}|"
+
+        # create table rows
+        rows = ""
+        for state in sorted(self.states):
+            row_prefix = self.__repr_row_prefix__(state)
+            rows += f"{row_prefix: ^5}{state or 'empty': <{cell_width}}"
+
+            for letter in sorted(self.alphabet):
+                transition = self.get_transition(state, letter)
+                rows += f"|{transition or 'empty': ^{cell_width}}"
+
+            rows += "\n"
+
+        divider = "-" * rows.index("\n")
+
+        return "\n".join([header[:-1], divider, rows])
+
+    def get_transition(self, state_from: str, symbol: str) -> Optional[str]:
         """Returns next state from the provided state by symbol.
 
         Args:
@@ -31,8 +72,7 @@ class DFA(FA):
         """
         return self.transitions.get(state_from, {}).get(symbol, None)
 
-    def set_transition(self, state_from: str, state_to: str,
-                       symbol: str) -> bool:
+    def set_transition(self, state_from: str, state_to: str, symbol: str) -> bool:
         """
         Adds/changes transition to automaton. And returns bool value based on success.
         If the automaton already contains transition from 'state_from' by 'symbol', it will be overwritten.
@@ -45,8 +85,11 @@ class DFA(FA):
         Returns:
             bool: True if transition was added, False otherwise.
         """
-        if not {state_from, state_to}.issubset(
-                self.states) or not symbol or symbol not in self.alphabet:
+        if (
+            not {state_from, state_to}.issubset(self.states)
+            or not symbol
+            or symbol not in self.alphabet
+        ):
             return False
 
         if not self.transitions[state_from]:
@@ -56,10 +99,9 @@ class DFA(FA):
 
         return True
 
-    def add_transition(self, state_from: str, state_to: str,
-                       symbol: str) -> bool:
+    def add_transition(self, state_from: str, state_to: str, symbol: str) -> bool:
         """
-        Adds transition to automaton. And returns bool value based on success. 
+        Adds transition to automaton. And returns bool value based on success.
         Nothing changes if the automaton already contains transition from 'state_from' by 'symbol'.
 
         Args:
@@ -70,8 +112,11 @@ class DFA(FA):
         Returns:
             bool: True if transition was added, False otherwise.
         """
-        if not {state_from, state_to}.issubset(
-                self.states) or not symbol or symbol not in self.alphabet:
+        if (
+            not {state_from, state_to}.issubset(self.states)
+            or not symbol
+            or symbol not in self.alphabet
+        ):
             return False
 
         if not self.get_transition(state_from, symbol):
@@ -89,7 +134,7 @@ class DFA(FA):
 
         Args:
             state_from (str): State name which the transition starts from.
-            symbol (str): Transition symbol. 
+            symbol (str): Transition symbol.
 
         Returns:
             bool: True if the automaton contained such transition, False otherwise.
@@ -110,12 +155,11 @@ class DFA(FA):
         Returns:
             Set of symbols.
         """
-        return set(
-            [
-                s for s in self.transitions[state_from].keys()
-                if self.get_transition(state_from, s) == state_to
-            ]
-        )
+        return {
+            s
+            for s in self.transitions[state_from].keys()
+            if self.get_transition(state_from, s) == state_to
+        }
 
     def add_state(self, state: str, is_final: bool = False) -> bool:
         """
@@ -136,7 +180,7 @@ class DFA(FA):
 
         Args:
             state (str): State to be removed.
-        
+
         Returns:
             bool: True if automaton contained such state, False otherwise.
         """
@@ -178,4 +222,20 @@ class DFA(FA):
 
 
 if __name__ == "__main__":
-    pass
+    dfa_transitions: DFATransitions = {
+        "s1": {"1": "s2", "0": "s4"},
+        "s2": {"1": "s3", "0": "s5"},
+        "s3": {"1": "s5", "0": "s5"},
+        "s4": {"1": "s5", "0": "s3"},
+        "s5": {"1": "s5", "0": "s5"},
+    }
+
+    automaton = DFA(
+        states={"s1", "s2", "s3", "s4", "s5"},
+        alphabet={"1", "0"},
+        initial_state="s1",
+        final_states={"s3"},
+        transitions=dfa_transitions,
+    )
+
+    print(automaton)

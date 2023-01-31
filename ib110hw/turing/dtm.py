@@ -1,31 +1,45 @@
-from typing import Set, Dict, Tuple
+from os import name, system
 from time import sleep
-from os import system, name
+from typing import Dict, Set, Tuple
 
-from machine import TuringMachine
-from tape import Tape, Direction
+from base import BaseTuringMachine
+from tape import Direction, Tape
 
-DTMTransitions = Dict[str, Dict[str, Tuple[str, str, Direction]]]
+DTMRule = Tuple[str, str, Direction]
+DTMRules = Dict[str, DTMRule]
+DTMTransitions = Dict[str, DTMRules]
 
 
-class DTM(TuringMachine):
+class DTM(BaseTuringMachine):
     """Represents a DETERMINISTIC Turing Machine"""
 
-    def __init__(self,
-                 states: Set[str],
-                 input_alphabet: Set[str],
-                 acc_states: Set[str],
-                 rej_states: Set[str] = set(),
-                 transition_function: DTMTransitions = {},
-                 tape: Tape = Tape(),
-                 initial_state: str = "init",
-                 start_symbol: str = ">",
-                 empty_symbol: str = "") -> None:
-        super().__init__(states, input_alphabet, acc_states, rej_states, initial_state, start_symbol, empty_symbol)
+    def __init__(
+        self,
+        states: Set[str],
+        input_alphabet: Set[str],
+        acc_states: Set[str],
+        rej_states: Set[str] = set(),
+        transition_function: DTMTransitions = None,
+        tape: Tape = Tape(),
+        initial_state: str = "init",
+        start_symbol: str = ">",
+        empty_symbol: str = "",
+    ) -> None:
+        if transition_function is None:
+            transition_function = {}
+        super().__init__(
+            states,
+            input_alphabet,
+            acc_states,
+            rej_states,
+            initial_state,
+            start_symbol,
+            empty_symbol,
+        )
         self.transition_function = transition_function
         self.tape = tape
 
-    def get_transition(self, state: str, read: str) -> Tuple[str, str, Direction]:
+    def get_transition(self, state: str, read: str) -> DTMRule:
         return self.transition_function.get(state, {}).get(read, None)
 
     def remove_state(self, state: str) -> bool:
@@ -43,12 +57,14 @@ class DTM(TuringMachine):
 
         return True
 
-    def simulate(self,
-                 to_console: bool = True,
-                 to_file: bool = False,
-                 path: str = "simulation.txt",
-                 delay: float = 0.5) -> bool:
-        """ Simulates the machine on its current tape configuration.
+    def simulate(
+        self,
+        to_console: bool = True,
+        to_file: bool = False,
+        path: str = "simulation.txt",
+        delay: float = 0.5,
+    ) -> bool:
+        """Simulates the machine on its current tape configuration.
 
         Args:
             to_console (bool, optional): Set to False if you only want to see the result. Defaults to True.
@@ -120,7 +136,9 @@ class DTM(TuringMachine):
         close()
 
         print(f"Exceeded the maximum allowed steps. ({self.max_steps})")
-        print("You change the default value by setting the 'max_steps' property of this automaton.")
+        print(
+            "You change the default value by setting the 'max_steps' property of this automaton."
+        )
 
         return False
 
@@ -160,18 +178,27 @@ if __name__ == "__main__":
         "gotoStart": {
             "a": ("gotoStart", "a", Direction.LEFT),
             "b": ("gotoStart", "b", Direction.LEFT),
-            "X": ("markLeft", "X", Direction.RIGHT)
-        }
+            "X": ("markLeft", "X", Direction.RIGHT),
+        },
     }
 
     machine: DTM = DTM(
-        states={"init", "markLeft", "gotoEndA", "checkA", "gotoEndB", "checkB", "accept", "reject"},
+        states={
+            "init",
+            "markLeft",
+            "gotoEndA",
+            "checkA",
+            "gotoEndB",
+            "checkB",
+            "accept",
+            "reject",
+        },
         input_alphabet={"a", "b"},
         acc_states={"accept"},
         rej_states={"reject"},
         initial_state="init",
-        transition_function=fn
+        transition_function=fn,
     )
 
     machine.tape.write(">aabbabbaa")
-    print(machine.simulate(delay=.2, to_file=True))
+    print(machine.simulate(delay=0.2, to_file=True))

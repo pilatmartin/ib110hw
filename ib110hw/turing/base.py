@@ -1,18 +1,25 @@
 from typing import Set
 
 
-class TuringMachine:
-    """Represents a abstract Turing machine class
-    """
+class BaseTuringMachine:
+    """Represents an abstract Turing machine class. This class cannot be instantiated."""
 
-    def __init__(self,
-                 states: Set[str],
-                 input_alphabet: Set[str],
-                 acc_states: Set[str],
-                 rej_states: Set[str] = set(),
-                 initial_state: str = "init",
-                 start_symbol: str = ">",
-                 empty_symbol: str = "") -> None:
+    def __new__(cls, *args, **kwargs):
+        if cls is BaseTuringMachine:
+            raise TypeError("Only DTM and MTM can be instantiated!")
+
+        return object.__new__(cls)
+
+    def __init__(
+        self,
+        states: Set[str],
+        input_alphabet: Set[str],
+        acc_states: Set[str],
+        rej_states: Set[str] = set(),
+        initial_state: str = "init",
+        start_symbol: str = ">",
+        empty_symbol: str = "",
+    ) -> None:
         self.states = states
         self.input_alphabet = input_alphabet
         self.acc_states = acc_states
@@ -25,10 +32,7 @@ class TuringMachine:
         # Change this value for more complex scenarios.
         self.max_steps = 100
 
-    def add_state(self,
-                  state: str,
-                  is_acc: bool = False,
-                  is_rej: bool = False) -> bool:
+    def add_state(self, state: str, is_acc: bool = False, is_rej: bool = False) -> bool:
         """Adds state to the machine.
 
         Args:
