@@ -16,24 +16,6 @@ class DFA(FA):
 
         super().__init__(states, alphabet, initial_state, final_states)
 
-    def __assert_valid_alphabet__(self):
-        assert "" not in self.alphabet, "DFAs alphabet cannot contain empty symbol (ε)."
-
-    def __assert_valid_transition_function__(self):
-        assert set(self.transitions.keys())\
-            .issubset(self.states), \
-            "All states in the transitions have to be part of the 'states' set."
-
-        assert set().union(
-            *[{*self.transitions[k].keys()} for k in self.transitions.keys()])\
-            .issubset(self.alphabet), \
-            "All symbols in the transition function have to be part of the alphabet."
-
-        assert all([
-            len(self.transitions[k].keys()) == len(self.alphabet)
-            for k in self.transitions.keys()
-        ]), "The transition function has to be complete."
-
     def __repr__(self) -> str:
         return super().__repr__() + "\n" + self.__repr_transitions__("DFA")
 

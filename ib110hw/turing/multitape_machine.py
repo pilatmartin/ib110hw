@@ -6,7 +6,7 @@ from os import system, name
 from machine import TuringMachine
 from tape import Tape, Direction
 
-MTMTransitions = Dict[str, Dict[Tuple[str, ...], Tuple[str, Tuple[str, ...], List[Direction]]]]
+MTMTransitions = Dict[str, Dict[Tuple[str, ...], Tuple[str, Tuple[str, ...], Tuple[Direction, ...]]]]
 
 
 class MTM(TuringMachine):
@@ -144,21 +144,21 @@ if __name__ == "__main__":
             (">", ""): ("copy", (">", ""), [Direction.RIGHT, Direction.STAY])
         },
         "copy": {
-            ("a", ""): ("copy", ("a", "a"), [Direction.RIGHT, Direction.RIGHT]),
-            ("b", ""): ("copy", ("b", "b"), [Direction.RIGHT, Direction.RIGHT]),
-            ("", ""): ("goToStart", ("", ""), [Direction.LEFT, Direction.STAY]),
+            ("a", ""): ("copy", ("a", "a"), (Direction.RIGHT, Direction.RIGHT)),
+            ("b", ""): ("copy", ("b", "b"), (Direction.RIGHT, Direction.RIGHT)),
+            ("", ""): ("goToStart", ("", ""), (Direction.LEFT, Direction.STAY)),
         },
         "goToStart": {
-            ("a", ""): ("goToStart", ("a", ""), [Direction.LEFT, Direction.STAY]),
-            ("b", ""): ("goToStart", ("b", ""), [Direction.LEFT, Direction.STAY]),
-            (">", ""): ("check", (">", ""), [Direction.RIGHT, Direction.LEFT])
+            ("a", ""): ("goToStart", ("a", ""), (Direction.LEFT, Direction.STAY)),
+            ("b", ""): ("goToStart", ("b", ""), (Direction.LEFT, Direction.STAY)),
+            (">", ""): ("check", (">", ""), (Direction.RIGHT, Direction.LEFT))
         },
         "check": {
-            ("a", "a"): ("check", ("a", "a"), [Direction.RIGHT, Direction.LEFT]),
-            ("b", "b"): ("check", ("b", "b"), [Direction.RIGHT, Direction.LEFT]),
-            ("", ""): ("accept", ("", ""), [Direction.STAY, Direction.STAY]),
-            ("a", "b"): ("reject", ("a", "b"), [Direction.STAY, Direction.STAY]),
-            ("b", "a"): ("reject", ("b", "a"), [Direction.STAY, Direction.STAY]),
+            ("a", "a"): ("check", ("a", "a"), (Direction.RIGHT, Direction.LEFT)),
+            ("b", "b"): ("check", ("b", "b"), (Direction.RIGHT, Direction.LEFT)),
+            ("", ""): ("accept", ("", ""), (Direction.STAY, Direction.STAY)),
+            ("a", "b"): ("reject", ("a", "b"), (Direction.STAY, Direction.STAY)),
+            ("b", "a"): ("reject", ("b", "a"), (Direction.STAY, Direction.STAY)),
         }
     }
 

@@ -13,12 +13,6 @@ class FA:
         self.initial_state = initial_state
         self.final_states = final_states
 
-    def __assert_valid_states__(self):
-        assert len(self.states) > 0, "Automaton has to have at least one state"
-        assert self.initial_state in self.states, "The initial state has to be a part of the states set"
-        assert self.final_states.issubset(
-            self.states), "All final states have to be part of the states set"
-
     def __repr__(self) -> str:
         alphabet_str = ",".join(self.alphabet)
         states_str = ",".join(self.states)
