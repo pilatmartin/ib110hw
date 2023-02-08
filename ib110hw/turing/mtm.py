@@ -3,8 +3,8 @@ from os import name, system
 from time import sleep
 from typing import Dict, List, Optional, Set, Tuple
 
-from base import BaseTuringMachine
-from tape import Direction, Tape
+from .base import BaseTuringMachine
+from .tape import Direction, Tape
 
 Symbols = Tuple[str, ...]
 Directions = Tuple[Direction, ...]

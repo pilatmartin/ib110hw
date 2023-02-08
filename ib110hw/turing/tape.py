@@ -27,16 +27,16 @@ class Cell:
         self.right = right
 
     def __repr__(self):
-        return self.value if self.value else " "
+        return self.value or " "
 
 
 class Tape:
     """Represents Turing machine memory tape as a linked list.
     """
 
-    def __init__(self, start: Cell = Cell()):
-        self.start = start
-        self.current = start
+    def __init__(self, start: Cell = None):
+        self.start = start or Cell()
+        self.current = self.start
 
     def __repr__(self) -> str:
         curr_cell: Cell = self.start

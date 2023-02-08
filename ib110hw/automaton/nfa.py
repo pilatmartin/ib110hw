@@ -1,6 +1,6 @@
 from typing import Dict, Set
 
-from base import BaseFiniteAutomaton
+from .base import BaseFiniteAutomaton
 
 NFARules = Dict[str, Set[str]]
 NFATransitions = Dict[str, NFARules]

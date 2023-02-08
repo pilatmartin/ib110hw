@@ -2,8 +2,8 @@ from os import name, system
 from time import sleep
 from typing import Dict, Set, Tuple
 
-from base import BaseTuringMachine
-from tape import Direction, Tape
+from .base import BaseTuringMachine
+from .tape import Direction, Tape
 
 DTMRule = Tuple[str, str, Direction]
 DTMRules = Dict[str, DTMRule]
