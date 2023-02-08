@@ -147,7 +147,7 @@ class DFA(BaseFiniteAutomaton):
 
     def get_symbols_between_states(self, state_from: str, state_to: str) -> Set[str]:
         """
-        Returns set of symbols between two states.
+        Returns set of symbols between two neighbouring states.
         Args:
             state_from: State name where the transition starts.
             state_to: State name where the transition ends.
@@ -212,30 +212,12 @@ class DFA(BaseFiniteAutomaton):
         """
         current_state = self.initial_state
 
-        for c in word:
-            if not self.get_transition(current_state, c):
+        for symbol in word:
+            if not (current_state := self.get_transition(current_state, symbol)):
                 return False
-
-            current_state = self.transitions[current_state][c]
 
         return current_state in self.final_states
 
 
 if __name__ == "__main__":
-    dfa_transitions: DFATransitions = {
-        "s1": {"1": "s2", "0": "s4"},
-        "s2": {"1": "s3", "0": "s5"},
-        "s3": {"1": "s5", "0": "s5"},
-        "s4": {"1": "s5", "0": "s3"},
-        "s5": {"1": "s5", "0": "s5"},
-    }
-
-    automaton = DFA(
-        states={"s1", "s2", "s3", "s4", "s5"},
-        alphabet={"1", "0"},
-        initial_state="s1",
-        final_states={"s3"},
-        transitions=dfa_transitions,
-    )
-
-    print(automaton)
+    pass
