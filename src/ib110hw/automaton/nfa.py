@@ -220,25 +220,4 @@ class NFA(BaseFiniteAutomaton):
 
 
 if __name__ == "__main__":
-    nfa_transitions: NFATransitions = {
-        "s1": {
-            "1": {"s2", "s4", "s3", "s5", "s6"},
-            "0": {"s4"},
-        },
-        "s2": {
-            "1": {"s3"},
-        },
-        "s4": {
-            "0": {"s3"},
-        },
-    }
-
-    automaton = NFA(
-        states={"s1", "s2", "s3", "s4", "s5"},
-        alphabet={"1", "0"},
-        initial_state="s1",
-        final_states={"s3"},
-        transitions=nfa_transitions,
-    )
-
-    print(automaton)
+    pass

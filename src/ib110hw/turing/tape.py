@@ -15,13 +15,11 @@ class Direction(Enum):
 
 
 class Cell:
-    """Represents one cell of a Turing machine memory tape.
-    """
+    """Represents one cell of a Turing machine memory tape."""
 
-    def __init__(self,
-                 value: str = EMPTY_SYMBOL,
-                 right: 'Cell' = None,
-                 left: 'Cell' = None) -> None:
+    def __init__(
+        self, value: str = EMPTY_SYMBOL, right: "Cell" = None, left: "Cell" = None
+    ) -> None:
         self.value = value
         self.left = left
         self.right = right
@@ -31,8 +29,7 @@ class Cell:
 
 
 class Tape:
-    """Represents Turing machine memory tape as a linked list.
-    """
+    """Represents Turing machine memory tape as a linked list."""
 
     def __init__(self, start: Cell = None):
         self.start = start or Cell()
@@ -71,16 +68,14 @@ class Tape:
             self.move_right()
 
     def move_left(self):
-        """Moves the tape cursor to the left. (current will be current.left)
-        """
+        """Moves the tape cursor to the left. (current will be current.left)"""
         if not self.current.left:
             self.current.left = Cell(right=self.current)
 
         self.current = self.current.left
 
     def move_right(self):
-        """Moves the tape cursor to the right. (current will be current.right)
-        """
+        """Moves the tape cursor to the right. (current will be current.right)"""
         if not self.current.right:
             self.current.right = Cell(left=self.current)
 
@@ -112,8 +107,7 @@ class Tape:
         self.current.value = symbol
 
     def clear(self) -> None:
-        """Clears the tape contents and places the cursor on the start.
-        """
+        """Clears the tape contents and places the cursor on the start."""
         self.start = Cell()
         self.current = self.start
 

@@ -1,7 +1,11 @@
+from sys import path
 from random import randint, choice, sample
 from typing import Set, List
-from src.automaton.dfa import DFA
-from src.automaton.nfa import NFA
+
+path.append("../src/ib110hw")
+
+from automaton.dfa import DFA
+from automaton.nfa import NFA
 
 
 def r_states(min_states: int, max_states: int) -> List[str]:

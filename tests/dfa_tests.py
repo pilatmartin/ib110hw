@@ -1,7 +1,11 @@
-from src.automaton.dfa import DFA
+from sys import path
 from hypothesis import given, assume
 from hypothesis.strategies import integers, sets, characters, composite, DrawFn
-from .generation import r_dfa
+from tests.generation import r_dfa
+
+path.append("../src/ib110hw")
+
+from automaton.dfa import DFA
 
 
 @composite

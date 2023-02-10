@@ -2,8 +2,9 @@ from typing import Union
 from .nfa import NFA
 from .dfa import DFA
 
+
 def automaton_to_graphviz(automaton: Union[NFA, DFA], path: str) -> None:
-    """ 
+    """
     Converts automaton to the graphviz format (.dot file) and saves
     the result in the specified location.
 
@@ -13,8 +14,8 @@ def automaton_to_graphviz(automaton: Union[NFA, DFA], path: str) -> None:
     """
     with open(path, "w", encoding="utf-8") as file:
         file.write("digraph G {\n")
-        file.write("\trankdir=\"LR\"\n")
-        file.write("\t__init__[shape=none label=\"\"]\n")
+        file.write('\trankdir="LR"\n')
+        file.write('\t__init__[shape=none label=""]\n')
         file.write(f"\t__init__ -> {automaton.initial_state}\n")
 
         for s_from in automaton.states:
@@ -25,7 +26,7 @@ def automaton_to_graphviz(automaton: Union[NFA, DFA], path: str) -> None:
                     label_symbols.add("ε")
 
                 if label := ",".join(label_symbols):
-                    file.write(f"\t{s_from} -> {s_to}[label=\"{label}\"]\n")
+                    file.write(f'\t{s_from} -> {s_to}[label="{label}"]\n')
 
         for non_fin_state in automaton.states.difference(automaton.final_states):
             file.write(f"\t{non_fin_state} [shape=circle]\n")
@@ -34,6 +35,7 @@ def automaton_to_graphviz(automaton: Union[NFA, DFA], path: str) -> None:
             file.write(f"\t{fin_state} [shape=doublecircle]\n")
 
         file.write("}\n")
+
 
 if __name__ == "__main__":
     pass

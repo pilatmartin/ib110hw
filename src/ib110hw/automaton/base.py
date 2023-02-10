@@ -32,14 +32,10 @@ class BaseFiniteAutomaton:
         return f"alphabet: {alphabet_str}\nstates: {states_str}\nfinal states: {final_states_str}\n"
 
     def __repr_row_prefix__(self, state: str):
-        if state == self.initial_state and state in self.final_states:
-            return "<-> "
         if state == self.initial_state:
-            return "--> "
-        elif state in self.final_states:
-            return "<-- "
-
-        return "    "
+            return "<-> " if state in self.final_states else "--> "
+        
+        return "<-- " if state in self.final_states else "    "
 
     def add_state(self, state: str, is_final: bool = False) -> bool:
         if state in self.states:
@@ -66,6 +62,7 @@ class BaseFiniteAutomaton:
             self.final_states.remove(state)
 
         self.states.remove(state)
+        
         return True
 
 

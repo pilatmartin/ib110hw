@@ -62,7 +62,6 @@ class MTM(BaseTuringMachine):
     def get_current_symbols(self) -> Symbols:
         return tuple((tape.current.value for tape in self.tapes))
 
-    # TODO Refactor simulation
     def simulate(
         self,
         to_console: bool = True,
@@ -161,35 +160,4 @@ class MTM(BaseTuringMachine):
 
 
 if __name__ == "__main__":
-    fn: MTMTransitions = {
-        "init": {(">", ""): ("copy", (">", ""), [Direction.RIGHT, Direction.STAY])},
-        "copy": {
-            ("a", ""): ("copy", ("a", "a"), (Direction.RIGHT, Direction.RIGHT)),
-            ("b", ""): ("copy", ("b", "b"), (Direction.RIGHT, Direction.RIGHT)),
-            ("", ""): ("goToStart", ("", ""), (Direction.LEFT, Direction.STAY)),
-        },
-        "goToStart": {
-            ("a", ""): ("goToStart", ("a", ""), (Direction.LEFT, Direction.STAY)),
-            ("b", ""): ("goToStart", ("b", ""), (Direction.LEFT, Direction.STAY)),
-            (">", ""): ("check", (">", ""), (Direction.RIGHT, Direction.LEFT)),
-        },
-        "check": {
-            ("a", "a"): ("check", ("a", "a"), (Direction.RIGHT, Direction.LEFT)),
-            ("b", "b"): ("check", ("b", "b"), (Direction.RIGHT, Direction.LEFT)),
-            ("", ""): ("accept", ("", ""), (Direction.STAY, Direction.STAY)),
-            ("a", "b"): ("reject", ("a", "b"), (Direction.STAY, Direction.STAY)),
-            ("b", "a"): ("reject", ("b", "a"), (Direction.STAY, Direction.STAY)),
-        },
-    }
-
-    machine: MTM = MTM(
-        states={"init", "goToEnd", "goToStart", "check", "accept", "reject"},
-        initial_state="init",
-        input_alphabet={"a", "b"},
-        acc_states={"accept"},
-        rej_states={"reject"},
-        transition_function=fn,
-    )
-
-    machine.write(">aabbabbaa")
-    print(machine.simulate(delay=0.2))
+    pass
