@@ -13,7 +13,6 @@ class BaseTuringMachine:
     def __init__(
         self,
         states: Set[str],
-        input_alphabet: Set[str],
         acc_states: Set[str],
         rej_states: Set[str] = set(),
         initial_state: str = "init",
@@ -21,7 +20,6 @@ class BaseTuringMachine:
         empty_symbol: str = "",
     ) -> None:
         self.states = states
-        self.input_alphabet = input_alphabet
         self.acc_states = acc_states
         self.rej_states = rej_states
         self.initial_state = initial_state
@@ -77,6 +75,12 @@ class BaseTuringMachine:
         self.states.remove(state)
 
         return True
+
+    def complement(self) -> None:
+        """
+        Complements the automaton. (Final states will become non-final and vice-versa).
+        """
+        self.final_states = self.states - self.final_states
 
 
 if __name__ == "__main__":

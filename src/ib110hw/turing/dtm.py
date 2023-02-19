@@ -29,13 +29,13 @@ class DTM(BaseTuringMachine):
             transition_function = {}
         super().__init__(
             states,
-            input_alphabet,
             acc_states,
             rej_states,
             initial_state,
             start_symbol,
             empty_symbol,
         )
+        self.input_alphabet = input_alphabet
         self.transition_function = transition_function
         self.tape = tape
 

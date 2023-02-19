@@ -64,8 +64,8 @@ class DFA(BaseFiniteAutomaton):
         """Returns next state from the provided state by symbol.
 
         Args:
-            state_from (str): _description_
-            symbol (str): _description_
+            state_from (str): State name where the transition starts.
+            symbol (str): Transition symbol.
 
         Returns:
             str: Next state if such transition exists, None otherwise.
@@ -200,19 +200,19 @@ class DFA(BaseFiniteAutomaton):
 
         return True
 
-    def is_accepted(self, word: str) -> bool:
+    def is_accepted(self, input_string: str) -> bool:
         """
-        Checks whether the provided word is accepted by the automaton.
+        Checks whether the provided string is accepted by the automaton.
 
         Args:
-            word (str): Word to be tested.
+            input_string (str): Input string to be tested.
 
         Returns:
             bool: True if word is accepted, False otherwise.
         """
         current_state = self.initial_state
 
-        for symbol in word:
+        for symbol in input_string:
             if not (current_state := self.get_transition(current_state, symbol)):
                 return False
 

@@ -60,11 +60,12 @@ class NFA(BaseFiniteAutomaton):
         return "\n".join([header[:-1], divider, rows])
 
     def get_transition(self, state_from: str, symbol: str) -> Set[str]:
-        """Returns next possible states from the provided state by symbol.
+        """
+        Returns next possible states from the provided state by symbol.
 
         Args:
-            state_from (str): _description_
-            symbol (str): _description_
+            state_from (str): State name where the transition starts.
+            symbol (str): Transition symbol.
 
         Returns:
             Set[str]: Set of next states.
@@ -191,32 +192,32 @@ class NFA(BaseFiniteAutomaton):
 
         return True
 
-    def is_accepted(self, word: str) -> bool:
+    def is_accepted(self, input_string: str) -> bool:
         """
-        Checks whether the provided word is accepted by the automaton.
+        Checks whether the provided input string is accepted by the automaton.
 
         Args:
-            word (str): Word to be tested.
+            input_string (str): Input string to be tested.
 
         Returns:
             bool: True if word is accepted, False otherwise.
         """
 
-        def is_accepted_rec(current_state: str, curr_word: str) -> bool:
-            if not curr_word:
+        def is_accepted_rec(current_state: str, curr_input: str) -> bool:
+            if not curr_input:
                 return current_state in self.final_states
 
-            if not self.get_transition(current_state, curr_word[0]):
+            if not self.get_transition(current_state, curr_input[0]):
                 return False
 
             result = False
 
-            for state in self.get_transition(current_state, curr_word[0]):
-                result = result or is_accepted_rec(state, curr_word[1:])
+            for state in self.get_transition(current_state, curr_input[0]):
+                result = result or is_accepted_rec(state, curr_input[1:])
 
             return result
 
-        return is_accepted_rec(self.initial_state, word)
+        return is_accepted_rec(self.initial_state, input_string)
 
 
 if __name__ == "__main__":
