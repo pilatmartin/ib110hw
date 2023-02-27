@@ -2,7 +2,7 @@ This library was created for the course IB110 - Introduction to Informatics at [
 
 # FINITE AUTOMATA
 
-This library supports **deterministic** and **nondeterministic** finite automata. You can find the implementation of these models in the module **automaton**. Consider class **FA** as abstract, its only purpose is to avoid duplicities in the implementation of these models.
+This library supports **deterministic** and **nondeterministic** finite automata. You can find the implementation of these models in the module **automaton**. Consider class **base** as abstract, its only purpose is to avoid duplicities in the implementation of these models.
 
 ### Deterministic finite automata (DFA)
 
@@ -131,44 +131,45 @@ from ib110hw.turing.tape import Direction
 
 fn: DTMTransitions = {
     "init": {
-        ">": ("markLeft", ">", Direction.RIGHT),
+        ">": ("mark", ">", Direction.RIGHT),
     },
-    "markLeft": {
-        "a": ("gotoEndA", "X", Direction.RIGHT),
-        "b": ("gotoEndB", "X", Direction.RIGHT),
+    "mark": {
+        "a": ("foundA", "X", Direction.RIGHT),
+        "b": ("foundB", "X", Direction.RIGHT),
         "X": ("accept", "X", Direction.STAY),
+        "": ("accept", "", Direction.STAY),
     },
-    "gotoEndA": {
-        "a": ("gotoEndA", "a", Direction.RIGHT),
-        "b": ("gotoEndA", "b", Direction.RIGHT),
+    "foundA": {
+        "a": ("foundA", "a", Direction.RIGHT),
+        "b": ("foundA", "b", Direction.RIGHT),
         "X": ("checkA", "X", Direction.LEFT),
         "": ("checkA", "", Direction.LEFT),
     },
     "checkA": {
-        "a": ("gotoStart", "X", Direction.LEFT),
+        "a": ("back", "X", Direction.LEFT),
         "b": ("reject", "b", Direction.STAY),
         "X": ("accept", "X", Direction.STAY),
     },
-    "gotoEndB": {
-        "a": ("gotoEndB", "a", Direction.RIGHT),
-        "b": ("gotoEndB", "b", Direction.RIGHT),
+    "foundB": {
+        "a": ("foundB", "a", Direction.RIGHT),
+        "b": ("foundB", "b", Direction.RIGHT),
         "X": ("checkB", "X", Direction.LEFT),
         "": ("checkB", "", Direction.LEFT),
     },
     "checkB": {
         "a": ("reject", "a", Direction.STAY),
-        "b": ("gotoStart", "X", Direction.LEFT),
+        "b": ("back", "X", Direction.LEFT),
         "X": ("accept", "X", Direction.STAY),
     },
-    "gotoStart": {
-        "a": ("gotoStart", "a", Direction.LEFT),
-        "b": ("gotoStart", "b", Direction.LEFT),
-        "X": ("markLeft", "X", Direction.RIGHT)
+    "back": {
+        "a": ("back", "a", Direction.LEFT),
+        "b": ("back", "b", Direction.LEFT),
+        "X": ("mark", "X", Direction.RIGHT)
     }
 }
 
 machine: DTM = DTM(
-    states={"init", "markLeft", "gotoEndA", "checkA", "gotoEndB", "checkB", "accept", "reject"},
+    states={"init", "mark", "gotoEndA", "checkA", "gotoEndB", "checkB", "accept", "reject"},
     input_alphabet={"a", "b"},
     acc_states={"accept"},
     rej_states={"reject"},
@@ -183,7 +184,7 @@ machine.tape.write(">aabbabbaa")
 A DTM transition function is represented by a nested dictionary defined by the type `DTMTransitions`.
 The keys of this dictionary are **states** of the turing machine, and values are dictionaries with **read symbols** as keys and a tuple containing the **next state**, **symbol to be written** and **the tape head direction** as values.
 
-Rule `δ(init, >) = (next, >, 1)` can be defined like so:
+Rule `δ(init, >) -> (next, >, 1)` can be defined like so:
 ```python 
 function: DTMransitions = {
     "init": {
@@ -236,7 +237,7 @@ machine.write(">aabbabbaa")
 ### MTM Transition Function
 A DTM transition function is represented by a nested dictionary defined by the type `MTMTransitions`. Compared to `DTMTransitions`, it takes a tuple of read symbols instead of a singular symbol and a tuple of directions instead of a singular direction. Length of these tuples is the amount of tapes.
 
-Rule `δ(init, (>, &#9141;)) = (next, (>, a), (1, 0))` can be defined like so:
+Rule `δ(init, (>, ␣)) = (next, (>, a), (1, 0))` can be defined like so:
 ```python 
 function: MTMransitions = {
     "init": {
@@ -257,7 +258,7 @@ If you want to look at the whole history, you can set parameter `to_file` to `Tr
 turing.simulate(to_console=False, to_file=True, path="~/my_simulation.txt") # True
 ```
 
-The `BaseTuringMachine` class contains the attribute `max_steps` to avoid infinite looping. By default, it is set to 100. The calculation will halt if the simulation exceeds the value specified by this attribute. This can be an issue on larger inputs, so setting it to a bigger number may be needed.
+The `BaseTuringMachine` class contains the attribute `max_steps` to avoid infinite looping. By default, it is set to 100. The computation will stop if the simulation exceeds the value specified by this attribute. This can be an issue on larger inputs, so setting it to a bigger number may be needed.
 ```python
 turing.max_steps = 200
 ```
@@ -266,4 +267,3 @@ turing.max_steps = 200
 For the optimal visualisation of the simulation in PyCharm you need to **enable** the `Terminal emulation`. 
 
 You can do so by going to `Run > Edit configurations ...` and then checking the `Emulate terminal in output console` box. 
-
