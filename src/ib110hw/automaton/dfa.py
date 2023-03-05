@@ -78,9 +78,9 @@ class DFA(BaseFiniteAutomaton):
         If the automaton already contains transition from 'state_from' by 'symbol', it will be overwritten.
 
         Args:
-            state_from (_type_): State name where the transition starts.
-            state_to (_type_): State name where the transition ends.
-            symbol (_type_): Transition symbol.
+            state_from (str): State name where the transition starts.
+            state_to (str): State name where the transition ends.
+            symbol (str): Transition symbol.
 
         Returns:
             bool: True if transition was added, False otherwise.
@@ -105,9 +105,9 @@ class DFA(BaseFiniteAutomaton):
         Nothing changes if the automaton already contains transition from 'state_from' by 'symbol'.
 
         Args:
-            state_from (_type_): State name where the transition starts.
-            state_to (_type_): State name where the transition ends.
-            symbol (_type_): Transition symbol.
+            state_from (str): State name where the transition starts.
+            state_to (str): State name where the transition ends.
+            symbol (str): Transition symbol.
 
         Returns:
             bool: True if transition was added, False otherwise.
@@ -217,6 +217,37 @@ class DFA(BaseFiniteAutomaton):
                 return False
 
         return current_state in self.final_states
+
+    def is_valid(self) -> bool:
+        """
+        Checks whether the DFA is valid:
+            1. The states set is not empty.
+            2. The initial state is in states.
+            3. Final states are subset of states.
+            4. The alphabet does not contain ε ('').
+            5. The transition function contains characters only from its alphabet.
+            6. The transition function contains states only from its states set.
+            7. The transition function is total.
+
+        Returns:
+            bool: True if DFA is valid, False otherwise.
+        """
+        # creates set of states used in the transition function
+        used_states = set(
+            sum((list(v.values()) for v in list(self.transitions.values())), [])
+        ) | set(self.transitions.keys())
+
+        # rules 1 - 6
+        if not super().is_valid() or "" in self.alphabet or self.states - used_states:
+            return False
+
+        # rule 7
+        if self.states - set(self.transitions.keys()) or any(
+            self.alphabet - {*rule.keys()} for rule in self.transitions.values()
+        ):
+            return False
+
+        return True
 
 
 if __name__ == "__main__":

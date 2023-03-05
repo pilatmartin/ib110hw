@@ -104,9 +104,9 @@ class NFA(BaseFiniteAutomaton):
         Adds transition to the automaton and returns bool based on success.
 
         Args:
-            state_from (str): _description_
-            states_to (Set[str]): _description_
-            symbol (str): _description_
+            state_from (str): State name where the transition starts.
+            states_to (Set[str]): Set of states where the transition ends.
+            symbol (str): Transition symbol.
 
         Returns:
             bool: True if transition was successfully added, False otherwise.
@@ -137,9 +137,9 @@ class NFA(BaseFiniteAutomaton):
         Adds transition to the automaton and returns bool based on success.
 
         Args:
-            state_from (str): _description_
-            state_to (str): _description_
-            symbol (str): _description_
+            state_from (str): State name where the transition starts.
+            state_to (str): State name where the transition ends.
+            symbol (str): Transition symbol.
 
         Returns:
             bool: True if transition was successfully added, False otherwise
@@ -156,6 +156,7 @@ class NFA(BaseFiniteAutomaton):
     def get_symbols_between_states(self, state_from: str, state_to: str) -> Set[str]:
         """
         Returns set of symbols between two states.
+
         Args:
             state_from: State name where the transition starts.
             state_to: State name where the transition ends.
@@ -170,6 +171,16 @@ class NFA(BaseFiniteAutomaton):
         }
 
     def add_state(self, state: str, is_final: bool = False) -> bool:
+        """
+        Adds a state to the automaton.
+
+        Args:
+            state (str): Name of the state to be added.
+            is_final (bool, optional): Whether to mark the state as final. Defaults to False.
+
+        Returns:
+            bool: True if automaton did not contain such state, False otherwise.
+        """
         return super().add_state(state, is_final)
 
     def remove_state(self, state: str) -> bool:
@@ -218,6 +229,35 @@ class NFA(BaseFiniteAutomaton):
             return result
 
         return is_accepted_rec(self.initial_state, input_string)
+
+    def is_valid(self) -> bool:
+        """
+        Checks whether the NFA is valid:
+            1. States set is not empty.
+            2. Initial state is in states.
+            3. Final states are subset of states.
+            4. The transition function contains characters only from its alphabet.
+            5. The transition function contains states only from its states set.
+
+        Returns:
+            bool: True if NFA is valid, False otherwise.
+        """
+        # creates set of states used in the transition function
+        used_states = set().union(
+            *sum((list(v.values()) for v in list(self.transitions.values())), [])
+        ) | set(self.transitions.keys())
+
+        # rule 5
+        if used_states - self.states:
+            return False
+
+        # rules 1-4
+        if not super().is_valid() or any(
+            set(rule.keys()) - self.alphabet for rule in self.transitions.values()
+        ):
+            return False
+
+        return True
 
 
 if __name__ == "__main__":

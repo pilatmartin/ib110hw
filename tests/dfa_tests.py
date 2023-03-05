@@ -126,3 +126,45 @@ def test_remove_transition(automaton: DFA) -> None:
     assert not automaton.remove_transition("not_exists", "a")
     assert automaton.remove_transition("test_state", "a")
     assert not automaton.get_transition("test_state", "a")
+
+
+def test_is_accepted() -> None:
+    automaton: DFA = DFA(
+        states={"s0", "s1", "s2", "s3", "s4"},
+        alphabet={"a", "b", "c"},
+        initial_state="s0",
+        final_states={"s0", "s3"},
+        transitions={
+            "s0": {"a": "s0", "b": "s0", "c": "s1"},
+            "s1": {"a": "s4", "b": "s2", "c": "s1"},
+            "s2": {"a": "s3", "b": "s1", "c": "s1"},
+            "s3": {"a": "s3", "b": "s3", "c": "s2"},
+            "s4": {"a": "s4", "b": "s4", "c": "s4"},
+        },
+    )
+
+    # words accepted in s0
+    acc_s0 = ["", "a", "b", "ab", "aba", "abba"]
+    # words accepted in s3 (starting from s1)
+    acc_s3 = ["ba", "cbaab", "cbaca", "bbba", "bcba", "baccbab"]
+    # words accepted in s0 and s1 (starting from s0)
+    acc = [f"{w0}c{w1}" for w0 in acc_s0 for w1 in acc_s3] + acc_s0
+
+    for acc_str in acc:
+        assert automaton.is_accepted(acc_str)
+
+    # words rejected in s1
+    rej_s1 = ["c", "cc", "cbb", "cbc", "cbb", "cbbc"]
+    # words rejected in s2 (starting from s1)
+    rej_s2 = ["b", "bbc", "bac", "baac", "babc", "baccb"]
+    # words rejected in s4
+    rej_s4 = [f"{w}a" for w in rej_s1]
+    # words rejected in s1, s2 and s4 (starting from s0)
+    rej = [
+        f"{w}{w4}"
+        for w in [f"{w1}{w2}" for w1 in rej_s1 for w2 in rej_s2]
+        for w4 in rej_s4
+    ] + rej_s1
+
+    for rej_str in rej:
+        assert not automaton.is_accepted(rej_str)

@@ -34,7 +34,7 @@ class BaseFiniteAutomaton:
     def __repr_row_prefix__(self, state: str):
         if state == self.initial_state:
             return "<-> " if state in self.final_states else "--> "
-        
+
         return "<-- " if state in self.final_states else "    "
 
     def add_state(self, state: str, is_final: bool = False) -> bool:
@@ -62,8 +62,15 @@ class BaseFiniteAutomaton:
             self.final_states.remove(state)
 
         self.states.remove(state)
-        
+
         return True
+
+    def is_valid(self) -> bool:
+        return (
+            self.states
+            and self.initial_state in self.states
+            and self.final_states.issubset(self.states)
+        )
 
 
 if __name__ == "__main__":
