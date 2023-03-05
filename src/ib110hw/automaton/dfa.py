@@ -61,7 +61,8 @@ class DFA(BaseFiniteAutomaton):
         return "\n".join([header[:-1], divider, rows])
 
     def get_transition(self, state_from: str, symbol: str) -> Optional[str]:
-        """Returns next state from the provided state by symbol.
+        """
+        Returns next state from the provided state by symbol.
 
         Args:
             state_from (str): State name where the transition starts.
@@ -72,20 +73,17 @@ class DFA(BaseFiniteAutomaton):
         """
         return self.transitions.get(state_from, {}).get(symbol, None)
 
-    def set_transition(self, state_from: str, state_to: str, symbol: str) -> bool:
+    def set_transition(self, state_from: str, state_to: str, symbol: str) -> None:
         """
-        Adds/changes transition to automaton. And returns bool value based on success.
+        Adds/changes transition to automaton.
         If the automaton already contains transition from 'state_from' by 'symbol', it will be overwritten.
 
         Args:
             state_from (str): State name where the transition starts.
             state_to (str): State name where the transition ends.
             symbol (str): Transition symbol.
-
-        Returns:
-            bool: True if transition was added, False otherwise.
         """
-        if not self.transitions[state_from]:
+        if state_from not in self.transitions.keys():
             self.transitions[state_from] = {symbol: state_to}
         else:
             self.transitions[state_from][symbol] = state_to
@@ -228,7 +226,7 @@ class DFA(BaseFiniteAutomaton):
             not super().is_valid()
             or "" in self.alphabet
             or self.states.symmetric_difference(used_states)
-            or used_symbols.issubset(self.alphabet)
+            or used_symbols.symmetric_difference(self.alphabet)
         ):
             return False
 
