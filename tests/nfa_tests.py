@@ -98,9 +98,6 @@ def test_remove_state(automaton: NFA) -> None:
 
 @given(r_test_nfa())
 def test_add_transition(automaton: NFA) -> None:
-    automaton.add_state("test_state")
-    automaton.alphabet.add("a")
-
     assert automaton.add_transition("test_state", {"test_state"}, "a")
     assert "test_state" in automaton.transitions.keys()
     assert "a" in automaton.transitions["test_state"]
@@ -114,6 +111,19 @@ def test_add_transition(automaton: NFA) -> None:
         "test_state", "a"
     )
     assert not automaton.add_transition("test_state", {"test_second_state"}, "a")
+
+
+@given(r_test_nfa())
+def test_set_transition(automaton: NFA) -> None:
+    automaton.set_transition("s_from", {"s_to1", "s_to2"}, "symbol")
+    assert automaton.get_transition("s_from", "symbol") == {"s_to1", "s_to2"}
+
+    automaton.set_transition("s_from", {"s_to2"}, "symbol2")
+    assert automaton.get_transition("s_from", "symbol2") == {"s_to2"}
+    assert automaton.get_transition("s_from", "symbol") == {"s_to1", "s_to2"}
+
+    automaton.set_transition("s_from", {"s_to2"}, "symbol")
+    assert automaton.get_transition("s_from", "symbol") == {"s_to2"}
 
 
 @given(r_test_nfa())
@@ -201,11 +211,11 @@ def test_is_valid() -> None:
     )
 
     assert automaton.is_valid()
-    
+
     # invalid initial state
     automaton.initial_state = "s3"
     assert not automaton.is_valid()
-    
+
     automaton.initial_state = "s0"
     assert automaton.is_valid()
 

@@ -66,9 +66,7 @@ def test_remove_state(automaton: DFA):
         [s for s in automaton.states if s not in automaton.final_states]
     )
 
-    assert automaton.remove_state(
-        state_to_remove
-    ), f"Expected to be able to remove state '{state_to_remove}'"
+    assert automaton.remove_state(state_to_remove)
     # cannot remove the same state twice
     assert not automaton.remove_state(state_to_remove)
     assert state_to_remove not in automaton.states
@@ -84,14 +82,24 @@ def test_remove_state(automaton: DFA):
 
 @given(r_test_dfa())
 def test_add_transition(automaton: DFA) -> None:
-    automaton.add_state("test_state")
-    automaton.alphabet.add("a")
-
     assert automaton.add_transition("test_state", "test_state", "a")
     assert "test_state" in automaton.transitions.keys()
     assert "a" in automaton.transitions["test_state"].keys()
     assert "test_state" == automaton.transitions["test_state"]["a"]
     assert not automaton.add_transition("test_state", "test_state", "a")
+
+
+@given(r_test_dfa())
+def test_set_transition(automaton: DFA) -> None:
+    automaton.set_transition("s_from", "s_to", "symbol")
+    assert automaton.get_transition("s_from", "symbol") == "s_to"
+
+    automaton.set_transition("s_from", "s_to2", "symbol2")
+    assert automaton.get_transition("s_from", "symbol2") == "s_to2"
+    assert automaton.get_transition("s_from", "symbol") == "s_to"
+
+    automaton.set_transition("s_from", "s_to2", "symbol")
+    assert automaton.get_transition("s_from", "symbol") == "s_to2"
 
 
 @given(r_test_dfa())
