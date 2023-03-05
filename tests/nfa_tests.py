@@ -11,11 +11,11 @@ from hypothesis.strategies import (
 )
 from re import match
 from tests.generation import r_nfa
+from random import choice
 
 path.append("../src/ib110hw")
 
 from automaton.nfa import NFA
-from automaton.utils import automaton_to_graphviz
 
 
 @composite
@@ -71,32 +71,22 @@ def test_add_state(automaton: NFA) -> None:
 
 @given(r_test_nfa())
 def test_remove_state(automaton: NFA) -> None:
-    # pick state that can be safely removed
-    state = next(
-        s
-        for s in automaton.states
-        if s not in automaton.final_states and s != automaton.initial_state
+    state_to_remove = choice(
+        [s for s in automaton.states if s not in automaton.final_states]
     )
 
-    assert automaton.remove_state(state)
+    assert automaton.remove_state(state_to_remove)
     # cannot remove the same state twice
-    assert not automaton.remove_state(state)
-    assert state not in automaton.states
+    assert not automaton.remove_state(state_to_remove)
+    assert state_to_remove not in automaton.states
     assert not automaton.remove_state("not_existent")
-    assert not automaton.remove_state(automaton.initial_state)
 
-    prev_initial = automaton.initial_state
-    automaton.states.add("test_init_state")
-    automaton.initial_state = "test_init_state"
+    state_to_remove = choice(list(automaton.final_states))
 
-    # just in case the initial state is the only final state
-    if prev_initial in automaton.final_states:
-        automaton.final_states.remove(prev_initial)
-
-    assert automaton.remove_state(prev_initial)
-    assert prev_initial not in automaton.states
-    assert prev_initial not in automaton.final_states
-    assert not automaton.transitions.get(prev_initial, None)
+    assert automaton.remove_state(state_to_remove)
+    assert state_to_remove not in automaton.states
+    assert state_to_remove not in automaton.final_states
+    assert not automaton.transitions.get(state_to_remove, None)
 
     automaton.add_state("test_final_state", True)
     # just in case the final states was empty
@@ -116,10 +106,6 @@ def test_add_transition(automaton: NFA) -> None:
     assert "a" in automaton.transitions["test_state"]
     assert {"test_state"} == automaton.transitions["test_state"]["a"]
     assert not automaton.add_transition("test_state", {"test_state"}, "a")
-
-    assert not automaton.add_transition("not_exists", {"test_state"}, "a")
-    assert not automaton.add_transition("test_state", {"not_exists"}, "a")
-    assert not automaton.add_transition("test_state", {"test_state"}, "not_exists")
 
     automaton.add_state("test_second_state")
     assert automaton.add_transition("test_state", {"test_second_state"}, "a")
@@ -199,3 +185,51 @@ def test_is_accepted(acc_str: str, rej_str: str) -> None:
 
     assert automaton.is_accepted(acc_str), f"Expected '{acc_str}' to be accepted."
     assert not automaton.is_accepted(rej_str), f"Expected '{rej_str}' to be rejected."
+
+
+def test_is_valid() -> None:
+    automaton: NFA = NFA(
+        states={"s0", "s1", "s2"},
+        alphabet={"a", "b", "c", ""},
+        initial_state="s0",
+        final_states={"s1", "s2"},
+        transitions={
+            "s0": {"a": {"s0", "s1"}, "b": {"s2"}},
+            "s1": {"a": {"s1"}, "b": {"s0", "s1", "s2"}, "c": {"s1"}},
+            "s2": {"a": {"s0", "s1"}, "": {"s1"}},
+        },
+    )
+
+    assert automaton.is_valid()
+    
+    # invalid initial state
+    automaton.initial_state = "s3"
+    assert not automaton.is_valid()
+    
+    automaton.initial_state = "s0"
+    assert automaton.is_valid()
+
+    # invalid state in the transition function
+    automaton.add_transition("s0", {"s3"}, "b")
+    assert not automaton.is_valid()
+
+    automaton.remove_transition("s0", "s3", "b")
+    assert automaton.is_valid()
+
+    # final states set is not subset of the states set
+    automaton.final_states.update({"s3"})
+    assert not automaton.is_valid()
+
+    automaton.final_states.remove("s3")
+    assert automaton.is_valid()
+
+    # invalid character in the transition function
+    automaton.add_transition("s0", {"s2"}, "x")
+    assert not automaton.is_valid()
+
+    automaton.remove_transition("s0", "s2", "x")
+    assert automaton.is_valid()
+
+    # empty states set
+    automaton.states = set()
+    assert not automaton.is_valid()

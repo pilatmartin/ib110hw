@@ -85,13 +85,6 @@ class DFA(BaseFiniteAutomaton):
         Returns:
             bool: True if transition was added, False otherwise.
         """
-        if (
-            not {state_from, state_to}.issubset(self.states)
-            or not symbol
-            or symbol not in self.alphabet
-        ):
-            return False
-
         if not self.transitions[state_from]:
             self.transitions[state_from] = {symbol: state_to}
         else:
@@ -101,7 +94,7 @@ class DFA(BaseFiniteAutomaton):
 
     def add_transition(self, state_from: str, state_to: str, symbol: str) -> bool:
         """
-        Adds transition to automaton. And returns bool value based on success.
+        Adds transition to automaton. And returns bool value based on a change.
         Nothing changes if the automaton already contains transition from 'state_from' by 'symbol'.
 
         Args:
@@ -112,13 +105,6 @@ class DFA(BaseFiniteAutomaton):
         Returns:
             bool: True if transition was added, False otherwise.
         """
-        if (
-            not {state_from, state_to}.issubset(self.states)
-            or not symbol
-            or symbol not in self.alphabet
-        ):
-            return False
-
         if not self.get_transition(state_from, symbol):
             if state_from not in self.transitions.keys():
                 self.transitions[state_from] = {}
@@ -190,10 +176,7 @@ class DFA(BaseFiniteAutomaton):
 
         self.transitions.pop(state, None)
 
-        for s in self.states:
-            if s not in self.transitions.keys():
-                continue
-
+        for s in self.transitions.keys():
             for symbol in list(self.transitions[s]):
                 if self.transitions[s][symbol] == state:
                     del self.transitions[s][symbol]
@@ -237,8 +220,16 @@ class DFA(BaseFiniteAutomaton):
             sum((list(v.values()) for v in list(self.transitions.values())), [])
         ) | set(self.transitions.keys())
 
+        # creates a set of symbols used in the transition function
+        used_symbols = set(sum((list(v.keys()) for v in self.transitions.values()), []))
+
         # rules 1 - 6
-        if not super().is_valid() or "" in self.alphabet or self.states - used_states:
+        if (
+            not super().is_valid()
+            or "" in self.alphabet
+            or self.states.symmetric_difference(used_states)
+            or used_symbols.issubset(self.alphabet)
+        ):
             return False
 
         # rule 7

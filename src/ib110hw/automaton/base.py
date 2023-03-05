@@ -49,20 +49,14 @@ class BaseFiniteAutomaton:
         return True
 
     def remove_state(self, state) -> bool:
-        # automaton would be without the initial state,
-        # without states, or no such state exists
-        if (
-            state == self.initial_state
-            or state not in self.states
-            or len(self.states) == 1
-        ):
+        if state not in self.states:
             return False
 
         if state in self.final_states:
             self.final_states.remove(state)
 
-        self.states.remove(state)
-
+        self.states.difference_update({state})
+        
         return True
 
     def is_valid(self) -> bool:
