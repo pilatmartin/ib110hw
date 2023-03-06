@@ -1,18 +1,42 @@
-This library was created for the course IB110 - Introduction to Informatics at [MUNI FI](https://www.fi.muni.cz/).
+This library was created for the course **IB110 - Introduction to Informatics** at [MUNI FI](https://www.fi.muni.cz/).
+
+Below is an overview of how these computational models can be used. Documentation for the functions is located in the files with the implementation.
 
 # FINITE AUTOMATA
 
-This library supports **deterministic** and **nondeterministic** finite automata. You can find the implementation of these models in the module **automaton**. Consider class **base** as abstract, its only purpose is to avoid duplicities in the implementation of these models.
+This library supports **deterministic** and **nondeterministic** finite automata. You can find the implementation of these models in the module `automaton`. Consider class the class located in the `base.py` as abstract, its only purpose is to avoid duplicities in the implementation of these models.
+
+In order to create an automaton you will need to specify the five-tuple `(Q, Σ, δ, q0, F)`, where:
+- The set of states `Q` is represented by `Set[str]`
+- The set of alphabet symbols `Σ` is represented by `Set[str]`
+- The transition function `δ` is represented by either `DFATransitions` or `NFATransitions`. These types are described below.
+- The set of final states `F` is represented by `Set[str]`
+
+There are implemented some helper functions if you need to update the automata automatically. (`remove_state(...)`, `add_transition(...)`, `is_valid()`, ...)
 
 ### Deterministic finite automata (DFA)
 
-The implementation for the DFA can be found in the file **dfa.py** with a description of each function.
+The implementation for DFA can be found in the file `dfa.py` with a description of each function.
 
 #### Example use-case of DFA:
+The `DFATransitions` is an alias to `Dict[str, Dict[str, str]]`. Keys of this dictionary are symbols where the transition begins. Values are nested dictionaries with alphabet symbols as keys and states where the transition ends as a values.
 
+**Example of a transition function**
+[![](https://mermaid.ink/img/pako:eNpFj7EOgzAMRH8l8gRSkIAxlTp1bJd2bDpExJQIQlASBoT497qBqp78zmfLt0LjNIKAt1dTx653OTKqUGVZqPL8oJqo_tLB5ZO9WFGcyffzE1a8TFq9-9IkxGVAWmCtGYbCTaoxcRElp4F3Pf6VE3Cw6K0ymr5Z0wGIHVqUIKjVyvcS5LiRT83RPZaxARH9jBzmSauIF6MohAXRqiGQitpE5297vJRy-wDaf0jH?type=png)](https://mermaid.live/edit#pako:eNpFj7EOgzAMRH8l8gRSkIAxlTp1bJd2bDpExJQIQlASBoT497qBqp78zmfLt0LjNIKAt1dTx653OTKqUGVZqPL8oJqo_tLB5ZO9WFGcyffzE1a8TFq9-9IkxGVAWmCtGYbCTaoxcRElp4F3Pf6VE3Cw6K0ymr5Z0wGIHVqUIKjVyvcS5LiRT83RPZaxARH9jBzmSauIF6MohAXRqiGQitpE5297vJRy-wDaf0jH)
+
+Transition shown above can be implemented like so:
+```python
+transition_fn: DFATransitions = {
+    "s1": {
+        "0": "s2,
+        "1": "s2,
+    },
+}
+```
+
+**More complex example**
 [![](https://mermaid.ink/img/pako:eNpdkT1vwyAQhv8KusmWbMn4Y6FSp4zp0oxxBmTOCQo2FsaDFeW_5-IWmpSJ5-F4OR036KxCEHB2crqw_Xc7MlpzkSRzkaa_xIl4pJKojFQRVZFqojpSkxA26ZND7pGdWJ5_UmbIJuSbKUN-NNWLKTbThFefNdm747GqDt1EU70Y_nar-Z-0-dmvBqld1mtjcjvJTvtVFBkdOHvFP_MBGQzoBqkVTfG2BYC_4IAtCNoq7OVifAvteKdSuXh7WMcOhHcLZrBMSnrcaUnzH0D00sxkUWlv3dfPz3R27PUZ7g-ne3N9?type=png)](https://mermaid.live/edit#pako:eNpdkT1vwyAQhv8KusmWbMn4Y6FSp4zp0oxxBmTOCQo2FsaDFeW_5-IWmpSJ5-F4OR036KxCEHB2crqw_Xc7MlpzkSRzkaa_xIl4pJKojFQRVZFqojpSkxA26ZND7pGdWJ5_UmbIJuSbKUN-NNWLKTbThFefNdm747GqDt1EU70Y_nar-Z-0-dmvBqld1mtjcjvJTvtVFBkdOHvFP_MBGQzoBqkVTfG2BYC_4IAtCNoq7OVifAvteKdSuXh7WMcOhHcLZrBMSnrcaUnzH0D00sxkUWlv3dfPz3R27PUZ7g-ne3N9)
 
-A nested dictionary of type **DFATransitions** represents the transition function. The keys of this dictionary are states of the automaton, and values are dictionaries with input symbols as keys and the next state as values.
 
 ```python
 from ib110hw.automaton.dfa import DFA, DFATransitions
@@ -58,10 +82,23 @@ automaton.is_accepted("10") # False
 The implementation for the NFA can be found in the file **nfa.py** with a description of each function.
 
 #### Example use-case of NFA:
+Transition function of an NFA is described by the `NFATransitions`. It is an alias to `Dict[str, Dict[str, Set[str]]]`. It is similar to the `DFATransitions` but instead of the next-state string, there is a **set** of next-state strings. 
 
+**Example of a transition function**
+[![](https://mermaid.ink/img/pako:eNplkD0PgjAQhv9KcxMkkPCx1cTJURcdxaGhhzS0lJQyEMJ_9yyog536PNf3ctcFaisRODydGFp2vlY9ozPmUTTmcbxTQVR8qSQq37RzdmcPlqZHSn3ShFkwxZ8pt1zwo581UgPWKK1TO4ha-ZlnCRWc7fBnDpCAQWeEkjTrEhqAb9FgBZyuUriugqpf6Z2YvL3NfQ3cuwkTmAYpPJ6UoBUN8EbokSxK5a27bMuHP1hf2DVPmA?type=png)](https://mermaid.live/edit#pako:eNplkD0PgjAQhv9KcxMkkPCx1cTJURcdxaGhhzS0lJQyEMJ_9yyog536PNf3ctcFaisRODydGFp2vlY9ozPmUTTmcbxTQVR8qSQq37RzdmcPlqZHSn3ShFkwxZ8pt1zwo581UgPWKK1TO4ha-ZlnCRWc7fBnDpCAQWeEkjTrEhqAb9FgBZyuUriugqpf6Z2YvL3NfQ3cuwkTmAYpPJ6UoBUN8EbokSxK5a27bMuHP1hf2DVPmA)
+Transition shown above can be implemented like so:
+```python
+transition_fn: NFATransitions = {
+    "s1": {
+        "0": {"s2", "s3"},
+        "1": set(), # specifying this is unnecessary
+    },
+}
+```
+
+**More complex example**
 [![](https://mermaid.ink/img/pako:eNpNkD0PgjAQhv9KcxMkkPA11cTJURcdxaGhhzQWSkoZCOG_e1ZAO_V5enkvfWeojETg8LSib9j5WnaMzpAGwZCG4UoZUbZTHhDm4c4FYfGhlZM7e7A4PlLKlkaYepNtibvJ_2YSb4otdzd-xtvBTRppBauV1rHpRaXcxJOIHqx54c8cIIIWbSuUpN_NPgBcgy2WwOkqhX2VUHYLzYnRmdvUVcCdHTGCsZfC4UkJKqUFXgs9kEWpnLGXb12-teUNz6daTA?type=png)](https://mermaid.live/edit#pako:eNpNkD0PgjAQhv9KcxMkkPA11cTJURcdxaGhhzQWSkoZCOG_e1ZAO_V5enkvfWeojETg8LSib9j5WnaMzpAGwZCG4UoZUbZTHhDm4c4FYfGhlZM7e7A4PlLKlkaYepNtibvJ_2YSb4otdzd-xtvBTRppBauV1rHpRaXcxJOIHqx54c8cIIIWbSuUpN_NPgBcgy2WwOkqhX2VUHYLzYnRmdvUVcCdHTGCsZfC4UkJKqUFXgs9kEWpnLGXb12-teUNz6daTA)
 
-The transition function is represented almost the same way as in DFA. Instead of the next-state string, there is a **set** of next-state strings. The type of the NFA transition function is **NFATransitions**.
 
 ```python
 from ib110hw.automaton.nfa import NFA, NFATransitions
@@ -93,9 +130,9 @@ automaton.is_accepted("10") # False
 ```
 
 # TURING MACHINE
-This library supports a **deterministic** and **multi-tape** Turing machines. You can find the implementation in the module **turing**.
+This library supports a **deterministic** and **multi-tape** Turing machines. You can find the implementation in the module `turing`.
 ## Tape
-The implementation of the tape for the Turing machine can be found in the file **tape.py**. 
+The implementation of the tape for the Turing machine can be found in the file `tape.py`. 
 
 ```python
 from ib110hw.turing.tape import Tape
@@ -235,7 +272,7 @@ machine.write(">aabbabbaa")
 ```
 
 ### MTM Transition Function
-A DTM transition function is represented by a nested dictionary defined by the type `MTMTransitions`. Compared to `DTMTransitions`, it takes a tuple of read symbols instead of a singular symbol and a tuple of directions instead of a singular direction. Length of these tuples is the amount of tapes.
+A MTM transition function is represented by a nested dictionary defined by the type `MTMTransitions`. Compared to `DTMTransitions`, it takes a tuple of read symbols instead of a singular symbol and a tuple of directions instead of a singular direction. Length of these tuples is the amount of tapes.
 
 Rule `δ(init, (>, ␣)) = (next, (>, a), (1, 0))` can be defined like so:
 ```python 
