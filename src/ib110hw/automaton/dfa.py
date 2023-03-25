@@ -88,8 +88,6 @@ class DFA(BaseFiniteAutomaton):
         else:
             self.transitions[state_from][symbol] = state_to
 
-        return True
-
     def add_transition(self, state_from: str, state_to: str, symbol: str) -> bool:
         """
         Adds transition to automaton. And returns bool value based on a change.

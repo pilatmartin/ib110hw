@@ -118,7 +118,7 @@ def r_nfa(
         next_states = sample(states, k=min(s_deg, len(states)))
 
         for next_state in next_states:
-            result.add_transition(_state, {next_state}, choice(list(alphabet)))
+            result.add_transition(_state, next_state, choice(list(alphabet)))
 
     states = r_states(min_states, max_states)
     fin_states_range = (

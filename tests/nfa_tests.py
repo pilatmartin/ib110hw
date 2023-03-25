@@ -98,19 +98,19 @@ def test_remove_state(automaton: NFA) -> None:
 
 @given(r_test_nfa())
 def test_add_transition(automaton: NFA) -> None:
-    assert automaton.add_transition("test_state", {"test_state"}, "a")
+    assert automaton.add_transition("test_state", "test_state", "a")
     assert "test_state" in automaton.transitions.keys()
     assert "a" in automaton.transitions["test_state"]
     assert {"test_state"} == automaton.transitions["test_state"]["a"]
-    assert not automaton.add_transition("test_state", {"test_state"}, "a")
+    assert not automaton.add_transition("test_state", "test_state", "a")
 
     automaton.add_state("test_second_state")
-    assert automaton.add_transition("test_state", {"test_second_state"}, "a")
+    assert automaton.add_transition("test_state", "test_second_state", "a")
     assert "test_second_state" not in automaton.transitions.keys()
     assert {"test_state", "test_second_state"} == automaton.get_transition(
         "test_state", "a"
     )
-    assert not automaton.add_transition("test_state", {"test_second_state"}, "a")
+    assert not automaton.add_transition("test_state", "test_second_state", "a")
 
 
 @given(r_test_nfa())
@@ -130,7 +130,7 @@ def test_set_transition(automaton: NFA) -> None:
 def test_remove_transition(automaton: NFA) -> None:
     automaton.add_state("test_state")
     automaton.alphabet.add("a")
-    automaton.add_transition("test_state", {"test_state"}, "a")
+    automaton.add_transition("test_state", "test_state", "a")
 
     assert not automaton.remove_transition(
         "test_state", automaton.alphabet.difference(["a"]).pop(), "test_state"
@@ -141,7 +141,8 @@ def test_remove_transition(automaton: NFA) -> None:
     assert not automaton.remove_transition("test_state", "test_state", "a")
 
     automaton.add_state("test_second_state")
-    automaton.add_transition("test_state", {"test_state", "test_second_state"}, "a")
+    automaton.add_transition("test_state", "test_state", "a"),
+    automaton.add_transition("test_state", "test_second_state", "a")
     assert automaton.remove_transition("test_state", "test_state", "a")
     assert automaton.get_transition("test_state", "a") == {"test_second_state"}
 
@@ -220,7 +221,7 @@ def test_is_valid() -> None:
     assert automaton.is_valid()
 
     # invalid state in the transition function
-    automaton.add_transition("s0", {"s3"}, "b")
+    automaton.add_transition("s0", "s3", "b")
     assert not automaton.is_valid()
 
     automaton.remove_transition("s0", "s3", "b")
@@ -234,7 +235,7 @@ def test_is_valid() -> None:
     assert automaton.is_valid()
 
     # invalid character in the transition function
-    automaton.add_transition("s0", {"s2"}, "x")
+    automaton.add_transition("s0", "s2", "x")
     assert not automaton.is_valid()
 
     automaton.remove_transition("s0", "s2", "x")

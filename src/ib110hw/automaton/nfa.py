@@ -90,7 +90,7 @@ class NFA(BaseFiniteAutomaton):
         else:
             self.transitions[state_from][symbol] = states_to
 
-    def add_transition(self, state_from: str, states_to: Set[str], symbol: str) -> bool:
+    def add_transition(self, state_from: str, state_to: str, symbol: str) -> bool:
         """
         Adds transition to the automaton and returns bool based on a change.
 
@@ -103,19 +103,19 @@ class NFA(BaseFiniteAutomaton):
             bool: True if the transition function changed, otherwise False.
         """
         if state_from not in self.transitions.keys():
-            self.transitions[state_from] = {symbol: states_to}
+            self.transitions[state_from] = {symbol: {state_to}}
             return True
 
         transition = self.get_transition(state_from, symbol)
 
         if not transition:
-            self.transitions[state_from][symbol] = states_to
-            return len(states_to) > 0
+            self.transitions[state_from][symbol] = {state_to}
+            return True
 
-        if not states_to - transition:
+        if state_to in transition:
             return False
 
-        self.transitions[state_from][symbol].update(states_to)
+        self.transitions[state_from][symbol].update({state_to})
 
         return True
 
@@ -182,7 +182,7 @@ class NFA(BaseFiniteAutomaton):
         """
         if not super().remove_state(state):
             return False
-        
+
         self.transitions.pop(state, None)
 
         for s in self.transitions.keys():
