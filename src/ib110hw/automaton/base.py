@@ -56,7 +56,7 @@ class BaseFiniteAutomaton:
             self.final_states.remove(state)
 
         self.states.difference_update({state})
-        
+
         return True
 
     def is_valid(self) -> bool:
@@ -65,6 +65,12 @@ class BaseFiniteAutomaton:
             and self.initial_state in self.states
             and self.final_states.issubset(self.states)
         )
+
+    def complement(self) -> None:
+        """
+        Complements the automaton. (Final states will become non-final and vice-versa).
+        """
+        self.final_states = self.states - self.final_states
 
 
 if __name__ == "__main__":

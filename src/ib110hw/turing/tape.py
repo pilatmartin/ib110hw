@@ -31,7 +31,7 @@ class Cell:
 class Tape:
     """Represents Turing machine memory tape as a linked list."""
 
-    def __init__(self, start: Cell = None):
+    def __init__(self, start: Cell = None) -> None:
         self.start = start or Cell()
         self.current = self.start
 

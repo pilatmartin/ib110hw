@@ -23,15 +23,15 @@ class MTM(BaseTuringMachine):
         input_alphabet: Set[str],
         acc_states: Set[str],
         rej_states: Set[str] = set(),
-        transition_function: MTMTransitions = None,
+        transitions: MTMTransitions = None,
         tape_count: int = 2,
         tapes: List[Tape] = None,
         initial_state: str = "init",
         start_symbol: str = ">",
         empty_symbol: str = "",
     ):
-        if transition_function is None:
-            transition_function = {}
+        if transitions is None:
+            transitions = {}
         super().__init__(
             states,
             input_alphabet,
@@ -41,13 +41,13 @@ class MTM(BaseTuringMachine):
             start_symbol,
             empty_symbol,
         )
-        self.transition_function = transition_function
+        self.transitions = transitions
         # TODO: Figure out how to remove the copy
         self.tapes = tapes or [deepcopy(Tape()) for _ in range(tape_count)]
         self.tape_count = tape_count or len(tapes)
 
     def get_transition(self, state: str, read: Symbols) -> Optional[MTMRule]:
-        return self.transition_function.get(state, {}).get(read, None)
+        return self.transitions.get(state, {}).get(read, None)
 
     def write(self, input_str: str) -> None:
         self.tapes[0].write(input_str)

@@ -76,12 +76,6 @@ class BaseTuringMachine:
 
         return True
 
-    def complement(self) -> None:
-        """
-        Complements the automaton. (Final states will become non-final and vice-versa).
-        """
-        self.final_states = self.states - self.final_states
-
 
 if __name__ == "__main__":
     pass

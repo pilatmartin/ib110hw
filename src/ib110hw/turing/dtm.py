@@ -19,14 +19,14 @@ class DTM(BaseTuringMachine):
         input_alphabet: Set[str],
         acc_states: Set[str],
         rej_states: Set[str] = set(),
-        transition_function: DTMTransitions = None,
+        transitions: DTMTransitions = None,
         tape: Tape = Tape(),
         initial_state: str = "init",
         start_symbol: str = ">",
         empty_symbol: str = "",
     ) -> None:
-        if transition_function is None:
-            transition_function = {}
+        if transitions is None:
+            transitions = {}
         super().__init__(
             states,
             acc_states,
@@ -36,26 +36,32 @@ class DTM(BaseTuringMachine):
             empty_symbol,
         )
         self.input_alphabet = input_alphabet
-        self.transition_function = transition_function
+        self.transitions = transitions
         self.tape = tape
 
     def get_transition(self, state: str, read: str) -> DTMRule:
-        return self.transition_function.get(state, {}).get(read, None)
+        return self.transitions.get(state, {}).get(read, None)
 
     def remove_state(self, state: str) -> bool:
         if not super().remove_state(state):
             return False
 
-        for state in self.transition_function:
-            if state in self.transition_function.keys():
-                del self.transition_function[state]
+        for state in self.transitions:
+            if state in self.transitions.keys():
+                del self.transitions[state]
 
-            for read in self.transition_function[state]:
-                next_s, _, _ = self.transition_function[state][read]
+            for read in self.transitions[state]:
+                next_s, _, _ = self.transitions[state][read]
                 if next_s == state:
-                    del self.transition_function[state][read]
+                    del self.transitions[state][read]
 
         return True
+
+    def write(self, input_str: str) -> None:
+        self.tape.write(input_str)
+
+    def clear_tape(self) -> None:
+        self.tape.clear()
 
     def simulate(
         self,
