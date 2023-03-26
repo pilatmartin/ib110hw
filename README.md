@@ -222,7 +222,7 @@ machine: DTM = DTM(
     transitions=fn
 )
 
-machine.tape.write(">aabbabbaa")
+machine.write(">aabbabbaa")
 ```
 
 ### DTM Transition function
