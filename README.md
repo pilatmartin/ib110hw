@@ -219,10 +219,10 @@ machine: DTM = DTM(
     acc_states={"accept"},
     rej_states={"reject"},
     initial_state="init",
-    transitions=fn
+    transitions=transitions
 )
 
-machine.write(">aabbabbaa")
+machine.write_to_tape(">aabbabbaa")
 ```
 
 ### DTM Transition function
@@ -279,7 +279,7 @@ machine: MTM = MTM(
     rej_states={"reject"},
     transitions=transitions)
 
-machine.write(">aabbabbaa")
+machine.write_to_tape(">aabbabbaa")
 ```
 
 ### MTM Transition Function

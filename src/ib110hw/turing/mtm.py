@@ -3,7 +3,7 @@ from os import name, system
 from time import sleep
 from typing import Dict, List, Optional, Set, Tuple
 
-from .base import BaseTuringMachine
+from .base import BaseTuringMachine, MAX_STEPS_ERROR_MSG
 from .tape import Direction, Tape
 
 Symbols = Tuple[str, ...]
@@ -15,7 +15,8 @@ MTMTransitions = Dict[str, MTMRules]
 
 
 class MTM(BaseTuringMachine):
-    """Represents a MULTI-TAPE Turing Machine"""
+    """
+    Represents a Multi-tape Turing Machine"""
 
     def __init__(
         self,
@@ -47,19 +48,51 @@ class MTM(BaseTuringMachine):
         self.tape_count = tape_count or len(tapes)
 
     def get_transition(self, state: str, read: Symbols) -> Optional[MTMRule]:
+        """
+        Returns the transition based on the current current state and read symbols.
+
+        Args:
+            state (str): Current state.
+            read (Symbols): Current read symbols.
+
+        Returns:
+            Optional[MTMRule]: Transition based on the provided params if exists, None otherwise.
+        """
         return self.transitions.get(state, {}).get(read, None)
 
-    def write(self, input_str: str) -> None:
-        self.tapes[0].write(input_str)
+    def write_to_tape(self, input_str: str, index: int = 0) -> None:
+        """
+        Writes the provided string on the tape on the index.
+
+        Args:
+            input_str (str): String to be written on the tape.
+            index (int, optional): Index of the tape to be updated. Defaults to 0.
+        """
+        self.tapes[index].write(input_str)
 
     def clear_tape(self, index: int) -> None:
+        """
+        Clears the tape on the index.
+
+        Args:
+            index (int): Index of the tape.
+        """
         self.tapes[index].clear()
 
     def clear_tapes(self) -> None:
+        """
+        Clears all the tapes
+        """
         for tape in self.tapes:
             tape.clear()
 
     def get_current_symbols(self) -> Symbols:
+        """
+        Gets the current symbols read by tape heads.
+
+        Returns:
+            Symbols: Symbols read by the tape heads.
+        """
         return tuple((tape.current.value for tape in self.tapes))
 
     def simulate(
@@ -91,6 +124,10 @@ class MTM(BaseTuringMachine):
             else:
                 system("cls")
 
+        def close():
+            if output_file:
+                output_file.close()
+
         def get_rule_string() -> str:
             row = self.get_transition(state, self.get_current_symbols())
             step_index = steps if row else steps - 1
@@ -98,7 +135,7 @@ class MTM(BaseTuringMachine):
 
             return f"{step_index}. ({next_step}) -> {row}\n"
 
-        def print_automaton_state() -> None:
+        def print_machine_configuration() -> None:
             rule_str = get_rule_string()
 
             if output_file:
@@ -118,24 +155,18 @@ class MTM(BaseTuringMachine):
 
                 sleep(delay)
 
-        def close():
-            print_automaton_state()
-
-            if output_file:
-                output_file.close()
-
-        # simulation itself
+        # the simulation itself starts here
         if to_file:
             output_file = open(path, "w")
 
-        while steps <= self.max_steps:
-            print_automaton_state()
+        while steps <= (self.max_steps + 1):
+            print_machine_configuration()
 
             if state in self.acc_states:
                 close()
                 return True
 
-            read_symbols = tuple((tape.current.value for tape in self.tapes))
+            read_symbols = self.get_current_symbols()
             rule = self.get_transition(state, read_symbols)
 
             if not rule or rule[0] in self.rej_states:
@@ -150,11 +181,7 @@ class MTM(BaseTuringMachine):
                 tape.move(direction)
 
         close()
-
-        print(f"Exceeded the maximum allowed steps. ({self.max_steps})")
-        print(
-            "You change the default value by setting the 'max_steps' property of this automaton."
-        )
+        print(MAX_STEPS_ERROR_MSG.format(self.max_steps))
 
         return False
 

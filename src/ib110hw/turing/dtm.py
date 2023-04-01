@@ -1,8 +1,8 @@
 from os import name, system
 from time import sleep
-from typing import Dict, Set, Tuple
+from typing import Dict, Optional, Set, Tuple
 
-from .base import BaseTuringMachine
+from .base import BaseTuringMachine, MAX_STEPS_ERROR_MSG
 from .tape import Direction, Tape
 
 DTMRule = Tuple[str, str, Direction]
@@ -11,7 +11,8 @@ DTMTransitions = Dict[str, DTMRules]
 
 
 class DTM(BaseTuringMachine):
-    """Represents a DETERMINISTIC Turing Machine"""
+    """
+    Represents a Deterministic Turing Machine"""
 
     def __init__(
         self,
@@ -29,38 +30,42 @@ class DTM(BaseTuringMachine):
             transitions = {}
         super().__init__(
             states,
+            input_alphabet,
             acc_states,
             rej_states,
             initial_state,
             start_symbol,
             empty_symbol,
         )
-        self.input_alphabet = input_alphabet
         self.transitions = transitions
         self.tape = tape
 
-    def get_transition(self, state: str, read: str) -> DTMRule:
+    def get_transition(self, state: str, read: str) -> Optional[DTMRule]:
+        """
+        Gets the transition based on the provided state and read symbol.
+
+        Args:
+            state (str): Current state of the DTM.
+            read (str): Symbol read by the tape head.
+
+        Returns:
+            DTMRule: Transition based on the provided parms if exists, None otherwise.
+        """
         return self.transitions.get(state, {}).get(read, None)
 
-    def remove_state(self, state: str) -> bool:
-        if not super().remove_state(state):
-            return False
+    def write_to_tape(self, input_str: str) -> None:
+        """
+        Writes the provided string on the tape.
 
-        for state in self.transitions:
-            if state in self.transitions.keys():
-                del self.transitions[state]
-
-            for read in self.transitions[state]:
-                next_s, _, _ = self.transitions[state][read]
-                if next_s == state:
-                    del self.transitions[state][read]
-
-        return True
-
-    def write(self, input_str: str) -> None:
+        Args:
+            input_str (str): String to be written on the tape.
+        """
         self.tape.write(input_str)
 
     def clear_tape(self) -> None:
+        """
+        Clears the contents of the tape.
+        """
         self.tape.clear()
 
     def simulate(
@@ -70,7 +75,8 @@ class DTM(BaseTuringMachine):
         path: str = "simulation.txt",
         delay: float = 0.5,
     ) -> bool:
-        """Simulates the machine on its current tape configuration.
+        """
+        Simulates the machine on its current tape configuration.
 
         Args:
             to_console (bool, optional): Set to False if you only want to see the result. Defaults to True.
@@ -92,6 +98,10 @@ class DTM(BaseTuringMachine):
             else:
                 system("cls")
 
+        def close():
+            if output_file:
+                output_file.close()
+
         def get_rule_string() -> str:
             row = self.get_transition(state, self.tape.current.value)
             step_index = steps if row else steps - 1
@@ -99,7 +109,7 @@ class DTM(BaseTuringMachine):
 
             return f"{step_index}. ({next_step}) -> {row}\n"
 
-        def print_automaton_state() -> None:
+        def print_machine_configuration() -> None:
             rule_str = get_rule_string()
 
             if output_file:
@@ -110,20 +120,15 @@ class DTM(BaseTuringMachine):
             if to_console:
                 clear_console()
                 print(rule_str, "\n", self.tape)
-
                 sleep(delay)
 
-        def close():
-            print_automaton_state()
-
-            if output_file:
-                output_file.close()
-
+        # the simulation itself starts here
         if to_file:
             output_file = open(path, "w")
 
-        while steps <= self.max_steps:
-            print_automaton_state()
+        while steps <= (self.max_steps + 1):
+            print_machine_configuration()
+
             if state in self.acc_states:
                 close()
                 return True
@@ -140,11 +145,7 @@ class DTM(BaseTuringMachine):
             self.tape.move(direction)
 
         close()
-
-        print(f"Exceeded the maximum allowed steps. ({self.max_steps})")
-        print(
-            "You change the default value by setting the 'max_steps' property of this automaton."
-        )
+        print(MAX_STEPS_ERROR_MSG.format(self.max_steps))
 
         return False
 
