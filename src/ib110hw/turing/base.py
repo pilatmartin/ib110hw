@@ -22,7 +22,6 @@ class BaseTuringMachine:
         rej_states: Set[str] = set(),
         initial_state: str = "init",
         start_symbol: str = ">",
-        empty_symbol: str = "",
     ) -> None:
         self.states = states
         self.input_alphabet = input_alphabet
@@ -30,7 +29,6 @@ class BaseTuringMachine:
         self.rej_states = rej_states
         self.initial_state = initial_state
         self.start_symbol = start_symbol
-        self.empty_symbol = empty_symbol
 
         # After exceeding max_steps value, the turing machine will be considered as looping.
         # Change this value for more complex scenarios.

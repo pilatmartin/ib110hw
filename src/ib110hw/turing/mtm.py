@@ -16,7 +16,8 @@ MTMTransitions = Dict[str, MTMRules]
 
 class MTM(BaseTuringMachine):
     """
-    Represents a Multi-tape Turing Machine"""
+    Represents a Multi-tape Turing Machine
+    """
 
     def __init__(
         self,
@@ -29,7 +30,6 @@ class MTM(BaseTuringMachine):
         tapes: List[Tape] = None,
         initial_state: str = "init",
         start_symbol: str = ">",
-        empty_symbol: str = "",
     ):
         if transitions is None:
             transitions = {}
@@ -40,10 +40,8 @@ class MTM(BaseTuringMachine):
             rej_states,
             initial_state,
             start_symbol,
-            empty_symbol,
         )
         self.transitions = transitions
-        # TODO: Figure out how to remove the copy
         self.tapes = tapes or [deepcopy(Tape()) for _ in range(tape_count)]
         self.tape_count = tape_count or len(tapes)
 
@@ -68,7 +66,7 @@ class MTM(BaseTuringMachine):
             input_str (str): String to be written on the tape.
             index (int, optional): Index of the tape to be updated. Defaults to 0.
         """
-        self.tapes[index].write(input_str)
+        self.tapes[index].write(self.start_symbol + input_str)
 
     def clear_tape(self, index: int) -> None:
         """

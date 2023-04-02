@@ -12,7 +12,8 @@ DTMTransitions = Dict[str, DTMRules]
 
 class DTM(BaseTuringMachine):
     """
-    Represents a Deterministic Turing Machine"""
+    Represents a Deterministic Turing Machine
+    """
 
     def __init__(
         self,
@@ -24,7 +25,6 @@ class DTM(BaseTuringMachine):
         tape: Tape = Tape(),
         initial_state: str = "init",
         start_symbol: str = ">",
-        empty_symbol: str = "",
     ) -> None:
         if transitions is None:
             transitions = {}
@@ -35,7 +35,6 @@ class DTM(BaseTuringMachine):
             rej_states,
             initial_state,
             start_symbol,
-            empty_symbol,
         )
         self.transitions = transitions
         self.tape = tape
@@ -60,7 +59,7 @@ class DTM(BaseTuringMachine):
         Args:
             input_str (str): String to be written on the tape.
         """
-        self.tape.write(input_str)
+        self.tape.write(self.start_symbol + input_str)
 
     def clear_tape(self) -> None:
         """
