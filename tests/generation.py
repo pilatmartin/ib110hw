@@ -1,3 +1,5 @@
+from hypothesis import assume
+from hypothesis.strategies import composite, integers, lists, sampled_from, DrawFn
 from sys import path
 from random import randint, choice, sample
 from typing import Set, List
@@ -142,15 +144,25 @@ def r_nfa(
     return result
 
 
-if __name__ == "__main__":
-    r_dfa_automaton = r_dfa(
-        min_deg=2,
-        max_deg=3,
-        min_states=3,
-        max_states=8,
-        min_fin_states=1,
-        max_fin_states=3,
-        alphabet={"a", "b", "c", "d"},
+@composite
+def acc_palindromes(draw: DrawFn):
+    length = draw(integers(min_value=1, max_value=50))
+    result = "".join(
+        draw(lists(sampled_from("ab"), min_size=length // 2, max_size=length // 2))
     )
 
-    print(r_dfa_automaton)
+    return result + result[::-1]
+
+
+@composite
+def rej_palindromes(draw: DrawFn):
+    length = draw(integers(min_value=1, max_value=50))
+    result = "".join(draw(lists(sampled_from("ab"), min_size=length, max_size=length)))
+
+    assume(result != result[::-1])
+
+    return result
+
+
+if __name__ == "__main__":
+    pass
