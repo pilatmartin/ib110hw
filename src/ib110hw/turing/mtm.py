@@ -1,10 +1,10 @@
 from copy import deepcopy
-from os import name, system
 from time import sleep
 from typing import Dict, List, Optional, Set, Tuple
 
 from .base import BaseTuringMachine, MAX_STEPS_ERROR_MSG
-from .tape import Direction, Tape
+from .tape import Direction, Tape, START_SYMBOL
+from ._helpers import clear_console, close_file, mtm_config_to_md
 
 Symbols = Tuple[str, ...]
 Directions = Tuple[Direction, ...]
@@ -29,10 +29,11 @@ class MTM(BaseTuringMachine):
         tape_count: int = 2,
         tapes: List[Tape] = None,
         initial_state: str = "init",
-        start_symbol: str = ">",
+        start_symbol: str = START_SYMBOL,
     ):
         if transitions is None:
             transitions = {}
+
         super().__init__(
             states,
             input_alphabet,
@@ -97,7 +98,7 @@ class MTM(BaseTuringMachine):
         self,
         to_console: bool = True,
         to_file: bool = False,
-        path: str = "simulation.txt",
+        path: str = "simulation.md",
         delay: float = 0.5,
     ) -> bool:
         """Simulates the machine on its current tape configuration.
@@ -105,7 +106,7 @@ class MTM(BaseTuringMachine):
         Args:
             to_console (bool, optional): Set to False if you only want to see the result. Defaults to True.
             to_file (bool, optional): Set to True if you want to save every step to the file. Defaults to False.
-            path (str, optional): Path to the file with the step history. Defaults to "simulation.txt".
+            path (str, optional): Path to the .md file with the step history. Defaults to "simulation.md".
             delay (float, optional): The delay (s) between each step when printing to console. Defaults to 0.5.
 
         Returns:
@@ -114,42 +115,26 @@ class MTM(BaseTuringMachine):
         state: str = self.initial_state
         steps: int = 1
         output_file = None
-        step_separator = f"\n{'=' * 40}\n\n"
-
-        def clear_console() -> None:
-            if name == "posix":
-                system("clear")
-            else:
-                system("cls")
-
-        def close():
-            if output_file:
-                output_file.close()
 
         def get_rule_string() -> str:
             row = self.get_transition(state, self.get_current_symbols())
             step_index = steps if row else steps - 1
             next_step = f"{state}, {self.get_current_symbols()}"
 
-            return f"{step_index}. ({next_step}) -> {row}\n"
+            return f"{step_index}. ({next_step}) -> {row}"
 
         def print_machine_configuration() -> None:
             rule_str = get_rule_string()
 
             if output_file:
-                output_file.write(rule_str)
-
-                for tape in self.tapes:
-                    output_file.write(repr(tape))
-
-                output_file.write(step_separator)
+                output_file.write(mtm_config_to_md(self.tapes, rule_str))
 
             if to_console:
                 clear_console()
                 print(rule_str, "\n\n")
 
                 for i, tape in enumerate(self.tapes):
-                    print(f"Tape {i}\n{repr(tape)}")
+                    print(f"Tape {i}\n{tape}")
 
                 sleep(delay)
 
@@ -161,14 +146,14 @@ class MTM(BaseTuringMachine):
             print_machine_configuration()
 
             if state in self.acc_states:
-                close()
+                close_file(output_file)
                 return True
 
             read_symbols = self.get_current_symbols()
             rule = self.get_transition(state, read_symbols)
 
             if not rule or rule[0] in self.rej_states:
-                close()
+                close_file(output_file)
                 return False
 
             steps += 1
@@ -178,7 +163,7 @@ class MTM(BaseTuringMachine):
                 tape.write_symbol(symbol)
                 tape.move(direction)
 
-        close()
+        close_file(output_file)
         print(MAX_STEPS_ERROR_MSG.format(self.max_steps))
 
         return False

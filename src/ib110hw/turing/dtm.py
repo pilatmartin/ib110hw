@@ -3,7 +3,8 @@ from time import sleep
 from typing import Dict, Optional, Set, Tuple
 
 from .base import BaseTuringMachine, MAX_STEPS_ERROR_MSG
-from .tape import Direction, Tape
+from .tape import Direction, Tape, START_SYMBOL
+from ._helpers import dtm_config_to_md, clear_console, close_file
 
 DTMRule = Tuple[str, str, Direction]
 DTMRules = Dict[str, DTMRule]
@@ -24,10 +25,11 @@ class DTM(BaseTuringMachine):
         transitions: DTMTransitions = None,
         tape: Tape = Tape(),
         initial_state: str = "init",
-        start_symbol: str = ">",
+        start_symbol: str = START_SYMBOL,
     ) -> None:
         if transitions is None:
             transitions = {}
+
         super().__init__(
             states,
             input_alphabet,
@@ -71,7 +73,7 @@ class DTM(BaseTuringMachine):
         self,
         to_console: bool = True,
         to_file: bool = False,
-        path: str = "simulation.txt",
+        path: str = "simulation.md",
         delay: float = 0.5,
     ) -> bool:
         """
@@ -80,7 +82,7 @@ class DTM(BaseTuringMachine):
         Args:
             to_console (bool, optional): Set to False if you only want to see the result. Defaults to True.
             to_file (bool, optional): Set to True if you want to save every step to the file. Defaults to False.
-            path (str, optional): Path to the file with the step history. Defaults to "simulation.txt".
+            path (str, optional): Path to the .md file with the step history. Defaults to "simulation.md".
             delay (float, optional): The delay (s) between each step when printing to console. Defaults to 0.5.
 
         Returns:
@@ -89,17 +91,6 @@ class DTM(BaseTuringMachine):
         state: str = self.initial_state
         steps: int = 1
         output_file = None
-        step_separator = f"\n{'=' * 40}\n\n"
-
-        def clear_console() -> None:
-            if name == "posix":
-                system("clear")
-            else:
-                system("cls")
-
-        def close():
-            if output_file:
-                output_file.close()
 
         def get_rule_string() -> str:
             row = self.get_transition(state, self.tape.current.value)
@@ -112,13 +103,11 @@ class DTM(BaseTuringMachine):
             rule_str = get_rule_string()
 
             if output_file:
-                output_file.write(rule_str)
-                output_file.write(repr(self.tape))
-                output_file.write(step_separator)
+                output_file.write(dtm_config_to_md(self.tape, rule_str))
 
             if to_console:
                 clear_console()
-                print(rule_str, "\n", self.tape)
+                print(f"{rule_str}\n{self.tape}")
                 sleep(delay)
 
         # the simulation itself starts here
@@ -129,13 +118,13 @@ class DTM(BaseTuringMachine):
             print_machine_configuration()
 
             if state in self.acc_states:
-                close()
+                close_file(output_file)
                 return True
 
             rule = self.get_transition(state, self.tape.current.value)
 
             if not rule or rule[0] in self.rej_states:
-                close()
+                close_file()
                 return False
 
             steps += 1
@@ -143,7 +132,7 @@ class DTM(BaseTuringMachine):
             self.tape.write_symbol(write)
             self.tape.move(direction)
 
-        close()
+        close_file()
         print(MAX_STEPS_ERROR_MSG.format(self.max_steps))
 
         return False
