@@ -13,15 +13,14 @@ class NFA(BaseFiniteAutomaton):
 
     def __init__(
         self,
-        states: Set[str],
-        alphabet: Set[str],
-        initial_state: str,
-        final_states: Set[str],
-        transitions: NFATransitions,
+        states: Set[str] = set(),
+        alphabet: Set[str] = set(),
+        initial_state: str = None,
+        final_states: Set[str] = set(),
+        transitions: NFATransitions = None,
     ):
         super().__init__(states, alphabet, initial_state, final_states)
-
-        self.transitions = transitions
+        self.transitions = transitions or {}
 
     def __repr__(self) -> str:
         return super().__repr__() + "\n" + self.__repr_transitions__()
