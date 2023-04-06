@@ -18,18 +18,15 @@ class DTM(BaseTuringMachine):
 
     def __init__(
         self,
-        states: Set[str],
-        input_alphabet: Set[str],
-        acc_states: Set[str],
-        rej_states: Set[str] = set(),
+        states: Set[str] = None,
+        input_alphabet: Set[str] = None,
+        acc_states: Set[str] = None,
+        rej_states: Set[str] = None,
         transitions: DTMTransitions = None,
-        tape: Tape = Tape(),
+        tape: Tape = None,
         initial_state: str = "init",
         start_symbol: str = START_SYMBOL,
     ) -> None:
-        if transitions is None:
-            transitions = {}
-
         super().__init__(
             states,
             input_alphabet,
@@ -38,8 +35,8 @@ class DTM(BaseTuringMachine):
             initial_state,
             start_symbol,
         )
-        self.transitions = transitions
-        self.tape = tape
+        self.transitions = transitions or Tape()
+        self.tape = tape or Tape()
 
     def get_transition(self, state: str, read: str) -> Optional[DTMRule]:
         """
@@ -68,6 +65,15 @@ class DTM(BaseTuringMachine):
         Clears the contents of the tape.
         """
         self.tape.clear()
+
+    def read_tape(self) -> str:
+        """
+        Reads contents of the tape.
+
+        Returns:
+            str: String written on the tape.
+        """
+        return self.tape.read()
 
     def simulate(
         self,
@@ -124,7 +130,7 @@ class DTM(BaseTuringMachine):
             rule = self.get_transition(state, self.tape.current.value)
 
             if not rule or rule[0] in self.rej_states:
-                close_file()
+                close_file(output_file)
                 return False
 
             steps += 1

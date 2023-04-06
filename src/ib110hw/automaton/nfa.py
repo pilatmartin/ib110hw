@@ -13,10 +13,10 @@ class NFA(BaseFiniteAutomaton):
 
     def __init__(
         self,
-        states: Set[str] = set(),
-        alphabet: Set[str] = set(),
+        states: Set[str] = None,
+        alphabet: Set[str] = None,
         initial_state: str = None,
-        final_states: Set[str] = set(),
+        final_states: Set[str] = None,
         transitions: NFATransitions = None,
     ):
         super().__init__(states, alphabet, initial_state, final_states)

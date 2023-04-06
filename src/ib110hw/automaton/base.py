@@ -19,10 +19,10 @@ class BaseFiniteAutomaton:
         initial_state: str,
         final_states: Set[str],
     ) -> None:
-        self.states = states
-        self.alphabet = alphabet
+        self.states = states or set()
+        self.alphabet = alphabet or set()
         self.initial_state = initial_state
-        self.final_states = final_states
+        self.final_states = final_states or set()
 
     def __repr__(self) -> str:
         alphabet_str = ",".join(self.alphabet)

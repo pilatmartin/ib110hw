@@ -21,19 +21,16 @@ class MTM(BaseTuringMachine):
 
     def __init__(
         self,
-        states: Set[str],
-        input_alphabet: Set[str],
-        acc_states: Set[str],
-        rej_states: Set[str] = set(),
+        states: Set[str] = None,
+        input_alphabet: Set[str] = None,
+        acc_states: Set[str] = None,
+        rej_states: Set[str] = None,
         transitions: MTMTransitions = None,
         tape_count: int = 2,
         tapes: List[Tape] = None,
         initial_state: str = "init",
         start_symbol: str = START_SYMBOL,
     ):
-        if transitions is None:
-            transitions = {}
-
         super().__init__(
             states,
             input_alphabet,
@@ -42,7 +39,7 @@ class MTM(BaseTuringMachine):
             initial_state,
             start_symbol,
         )
-        self.transitions = transitions
+        self.transitions = transitions or {}
         self.tapes = tapes or [deepcopy(Tape()) for _ in range(tape_count)]
         self.tape_count = tape_count or len(tapes)
 
@@ -84,6 +81,15 @@ class MTM(BaseTuringMachine):
         """
         for tape in self.tapes:
             tape.clear()
+
+    def read_tape(self, index: int = 0) -> str:
+        """
+        Reads contents of a tape by index.
+
+        Returns:
+            str: String written on the tape on index.
+        """
+        return self.tapes[index].read()
 
     def get_current_symbols(self) -> Symbols:
         """
