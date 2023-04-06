@@ -111,6 +111,22 @@ class Tape:
         self.start = Cell()
         self.current = self.start
 
+    def read(self) -> str:
+        """
+        Retrieves the content written on the tape.
+
+        Returns:
+            str: Content written on the tape.
+        """
+        current = self.start
+        result = ""
+
+        while current.right:
+            result += current.value
+            current = current.right
+
+        return result
+
 
 if __name__ == "__main__":
     pass
