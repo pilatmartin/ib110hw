@@ -235,22 +235,18 @@ class NFA(BaseFiniteAutomaton):
         Returns:
             bool: True if NFA is valid, False otherwise.
         """
+        t_values = self.transitions.values()
+
         # creates set of states used in the transition function
         used_states = set().union(
-            *sum((list(v.values()) for v in list(self.transitions.values())), [])
+            *sum((list(v.values()) for v in list(t_values)), [])
         ) | set(self.transitions.keys())
 
-        # rule 5
-        if used_states - self.states:
-            return False
-
-        # rules 1-4
-        if not super().is_valid() or any(
-            set(rule.keys()) - self.alphabet for rule in self.transitions.values()
-        ):
-            return False
-
-        return True
+        return not (
+            not super().is_valid()  # rules 1-3
+            or any(set(rule.keys()) - self.alphabet for rule in t_values)  # rule 4
+            or used_states - self.states  # rule 5
+        )
 
 
 if __name__ == "__main__":

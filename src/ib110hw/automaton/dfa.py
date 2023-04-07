@@ -215,30 +215,24 @@ class DFA(BaseFiniteAutomaton):
         Returns:
             bool: True if DFA is valid, False otherwise.
         """
+        t_values = self.transitions.values()
+
         # creates set of states used in the transition function
-        used_states = set(
-            sum((list(v.values()) for v in list(self.transitions.values())), [])
-        ) | set(self.transitions.keys())
+        used_states = set(sum((list(v.values()) for v in list(t_values)), [])) | set(
+            self.transitions.keys()
+        )
 
         # creates a set of symbols used in the transition function
-        used_symbols = set(sum((list(v.keys()) for v in self.transitions.values()), []))
+        used_symbols = set(sum((list(v.keys()) for v in t_values), []))
 
-        # rules 1 - 6
-        if (
-            not super().is_valid()
-            or "" in self.alphabet
-            or self.states.symmetric_difference(used_states)
-            or used_symbols.symmetric_difference(self.alphabet)
-        ):
-            return False
-
-        # rule 7
-        if self.states - set(self.transitions.keys()) or any(
-            self.alphabet - {*rule.keys()} for rule in self.transitions.values()
-        ):
-            return False
-
-        return True
+        return not (
+            not super().is_valid()  # rules 1-3
+            or "" in self.alphabet  # rule 4
+            or used_symbols.symmetric_difference(self.alphabet)  # rule 5
+            or self.states.symmetric_difference(used_states)  # rule 6
+            or self.states.difference(self.transitions.keys())  # rule 7
+            or any(self.alphabet.difference(rule.keys()) for rule in t_values)  # rule 7
+        )
 
 
 if __name__ == "__main__":
