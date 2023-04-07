@@ -18,7 +18,10 @@ class NFA(BaseFiniteAutomaton):
         initial_state: str = None,
         final_states: Set[str] = None,
         transitions: NFATransitions = None,
-    ):
+    ) -> None:
+        if transitions:
+            states = states or set(transitions.keys())
+
         super().__init__(states, alphabet, initial_state, final_states)
         self.transitions = transitions or {}
 
@@ -202,6 +205,7 @@ class NFA(BaseFiniteAutomaton):
         Returns:
             bool: True if word is accepted, False otherwise.
         """
+        assert self.is_valid(), "NFA needs to be valid."
 
         def is_accepted_rec(current_state: str, curr_input: str) -> bool:
             if not curr_input:

@@ -18,7 +18,10 @@ class DFA(BaseFiniteAutomaton):
         initial_state: str = None,
         final_states: Set[str] = None,
         transitions: DFATransitions = None,
-    ):
+    ) -> None:
+        if transitions:
+            states = states or set(transitions.keys())
+
         super().__init__(states, alphabet, initial_state, final_states)
         self.transitions = transitions or {}
 
@@ -188,6 +191,8 @@ class DFA(BaseFiniteAutomaton):
         Returns:
             bool: True if word is accepted, False otherwise.
         """
+        assert self.is_valid(), "DFA needs to be valid."
+
         current_state = self.initial_state
 
         for symbol in input_string:
