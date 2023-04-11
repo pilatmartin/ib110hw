@@ -1,4 +1,3 @@
-from os import name, system
 from time import sleep
 from typing import Dict, Optional, Set, Tuple
 
@@ -35,7 +34,7 @@ class DTM(BaseTuringMachine):
             initial_state,
             start_symbol,
         )
-        self.transitions = transitions or Tape()
+        self.transitions = transitions or {}
         self.tape = tape or Tape()
 
     def get_transition(self, state: str, read: str) -> Optional[DTMRule]:
@@ -95,6 +94,7 @@ class DTM(BaseTuringMachine):
             bool: False if the machine rejects the word or exceeds the 'max_steps' value, True otherwise.
         """
         state: str = self.initial_state
+        print("state", state)
         steps: int = 1
         output_file = None
 

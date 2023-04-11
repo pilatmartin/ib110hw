@@ -250,4 +250,5 @@ class NFA(BaseFiniteAutomaton):
 
 
 if __name__ == "__main__":
-    pass
+    idk = {f"{i}" for i in range(10)}
+    idk.difference_update
