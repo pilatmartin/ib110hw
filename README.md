@@ -1,6 +1,6 @@
 This library was created for the course **IB110 - Introduction to Informatics** at [MUNI FI](https://www.fi.muni.cz/).
 
-Below is an overview of how these computational models can be used. Documentation for the functions is located in the files with the implementation.
+Below is an overview of how these computational models can be used. Further documentation is located in the files with the implementation.
 
 # FINITE AUTOMATA
 
@@ -8,37 +8,48 @@ This library supports **deterministic** and **nondeterministic** finite automata
 
 In order to create an automaton you will need to specify the five-tuple `(Q, Σ, δ, q0, F)`, where:
 
--   The set of states `Q` is represented by `Set[str]`
--   The set of alphabet symbols `Σ` is represented by `Set[str]`
--   The transition function `δ` is represented by either `DFATransitions` or `NFATransitions`. These types are described below.
--   The set of final states `F` is represented by `Set[str]`
+- The set of states `Q` is represented by `Set[str]`
+- The set of alphabet symbols `Σ` is represented by `Set[str]`
+- The transition function `δ` is represented by either `DFATransitions` or `NFATransitions`. These types are described below.
+- The set of final states `F` is represented by `Set[str]`
 
-There are implemented some helper functions if you need to update the automata automatically. (`remove_state(...)`, `add_transition(...)`, `is_valid()`, ...)
+`DFA` and `NFA` objects can be created in two ways:
 
-### Deterministic finite automata (DFA)
+1. If you know exactly how the automaton should look like you can create id directly - section **Example use-case of DFA** and **Example use-case of NFA**.
+2. If you are implementing an algorithm, for example, you can use helper functions - described in section **DFA helper functions** and **NFA helper functions**.
 
-The implementation for DFA can be found in the file `dfa.py` with a description of each function.
+There are implemented some helper functions if you need to update the automata dynamically. (`remove_state(...)`, `add_transition(...)`, `is_valid()`, ...)
 
-#### Example use-case of DFA:
+## Deterministic finite automata (DFA)
 
-The `DFATransitions` is an alias to `Dict[str, Dict[str, str]]`. Keys of this dictionary are symbols where the transition begins. Values are nested dictionaries with alphabet symbols as keys and states where the transition ends as a values.
+The implementation for DFA can be found in the file `automaton/dfa.py`.
 
-**Example of a transition function**</br>
-[![](https://mermaid.ink/img/pako:eNpFj7EOgzAMRH8l8gRSkIAxlTp1bJd2bDpExJQIQlASBoT497qBqp78zmfLt0LjNIKAt1dTx653OTKqUGVZqPL8oJqo_tLB5ZO9WFGcyffzE1a8TFq9-9IkxGVAWmCtGYbCTaoxcRElp4F3Pf6VE3Cw6K0ymr5Z0wGIHVqUIKjVyvcS5LiRT83RPZaxARH9jBzmSauIF6MohAXRqiGQitpE5297vJRy-wDaf0jH?type=png)](https://mermaid.live/edit#pako:eNpFj7EOgzAMRH8l8gRSkIAxlTp1bJd2bDpExJQIQlASBoT497qBqp78zmfLt0LjNIKAt1dTx653OTKqUGVZqPL8oJqo_tLB5ZO9WFGcyffzE1a8TFq9-9IkxGVAWmCtGYbCTaoxcRElp4F3Pf6VE3Cw6K0ymr5Z0wGIHVqUIKjVyvcS5LiRT83RPZaxARH9jBzmSauIF6MohAXRqiGQitpE5297vJRy-wDaf0jH)
+### Example use-case of DFA
+
+The `DFATransitions` is an alias to `Dict[str, Dict[str, str]]`. Keys of this dictionary are symbols where the transition begins. Values are nested dictionaries with alphabet symbols as keys and states where the transition ends as values.
+
+#### Example of a DFA transition function
+
+</br>
+
+[![DFA transition function example](https://mermaid.ink/img/pako:eNpFj7EOgzAMRH8l8gRSkIAxlTp1bJd2bDpExJQIQlASBoT497qBqp78zmfLt0LjNIKAt1dTx653OTKqUGVZqPL8oJqo_tLB5ZO9WFGcyffzE1a8TFq9-9IkxGVAWmCtGYbCTaoxcRElp4F3Pf6VE3Cw6K0ymr5Z0wGIHVqUIKjVyvcS5LiRT83RPZaxARH9jBzmSauIF6MohAXRqiGQitpE5297vJRy-wDaf0jH?type=png)](https://mermaid.live/edit#pako:eNpFj7EOgzAMRH8l8gRSkIAxlTp1bJd2bDpExJQIQlASBoT497qBqp78zmfLt0LjNIKAt1dTx653OTKqUGVZqPL8oJqo_tLB5ZO9WFGcyffzE1a8TFq9-9IkxGVAWmCtGYbCTaoxcRElp4F3Pf6VE3Cw6K0ymr5Z0wGIHVqUIKjVyvcS5LiRT83RPZaxARH9jBzmSauIF6MohAXRqiGQitpE5297vJRy-wDaf0jH)
 
 Transition shown above can be written like so:
 
 ```python
 transition_fn: DFATransitions = {
     "s1": {
-        "0": "s2,
-        "1": "s2,
+        "0": "s2",
+        "1": "s2",
     },
 }
 ```
 
-**More complex example**</br>
-[![](https://mermaid.ink/img/pako:eNpdkT1vwyAQhv8KusmWbMn4Y6FSp4zp0oxxBmTOCQo2FsaDFeW_5-IWmpSJ5-F4OR036KxCEHB2crqw_Xc7MlpzkSRzkaa_xIl4pJKojFQRVZFqojpSkxA26ZND7pGdWJ5_UmbIJuSbKUN-NNWLKTbThFefNdm747GqDt1EU70Y_nar-Z-0-dmvBqld1mtjcjvJTvtVFBkdOHvFP_MBGQzoBqkVTfG2BYC_4IAtCNoq7OVifAvteKdSuXh7WMcOhHcLZrBMSnrcaUnzH0D00sxkUWlv3dfPz3R27PUZ7g-ne3N9?type=png)](https://mermaid.live/edit#pako:eNpdkT1vwyAQhv8KusmWbMn4Y6FSp4zp0oxxBmTOCQo2FsaDFeW_5-IWmpSJ5-F4OR036KxCEHB2crqw_Xc7MlpzkSRzkaa_xIl4pJKojFQRVZFqojpSkxA26ZND7pGdWJ5_UmbIJuSbKUN-NNWLKTbThFefNdm747GqDt1EU70Y_nar-Z-0-dmvBqld1mtjcjvJTvtVFBkdOHvFP_MBGQzoBqkVTfG2BYC_4IAtCNoq7OVifAvteKdSuXh7WMcOhHcLZrBMSnrcaUnzH0D00sxkUWlv3dfPz3R27PUZ7g-ne3N9)
+#### More complex DFA example
+
+</br>
+
+[![More complex DFA example](https://mermaid.ink/img/pako:eNpdkT1vwyAQhv8KusmWbMn4Y6FSp4zp0oxxBmTOCQo2FsaDFeW_5-IWmpSJ5-F4OR036KxCEHB2crqw_Xc7MlpzkSRzkaa_xIl4pJKojFQRVZFqojpSkxA26ZND7pGdWJ5_UmbIJuSbKUN-NNWLKTbThFefNdm747GqDt1EU70Y_nar-Z-0-dmvBqld1mtjcjvJTvtVFBkdOHvFP_MBGQzoBqkVTfG2BYC_4IAtCNoq7OVifAvteKdSuXh7WMcOhHcLZrBMSnrcaUnzH0D00sxkUWlv3dfPz3R27PUZ7g-ne3N9?type=png)](https://mermaid.live/edit#pako:eNpdkT1vwyAQhv8KusmWbMn4Y6FSp4zp0oxxBmTOCQo2FsaDFeW_5-IWmpSJ5-F4OR036KxCEHB2crqw_Xc7MlpzkSRzkaa_xIl4pJKojFQRVZFqojpSkxA26ZND7pGdWJ5_UmbIJuSbKUN-NNWLKTbThFefNdm747GqDt1EU70Y_nar-Z-0-dmvBqld1mtjcjvJTvtVFBkdOHvFP_MBGQzoBqkVTfG2BYC_4IAtCNoq7OVifAvteKdSuXh7WMcOhHcLZrBMSnrcaUnzH0D00sxkUWlv3dfPz3R27PUZ7g-ne3N9)
 
 ```python
 from ib110hw.automaton.dfa import DFA, DFATransitions
@@ -73,21 +84,207 @@ automaton = DFA(
     final_states={"s3"},
     transitions=dfa_transitions,
 )
+```
 
+#### Helper functions for DFA
+
+Below are described some use-cases of the implemented helper functions. If you want to learn more about them, check the `automaton/dfa.py` file containing the implementation with further documentation.
+
+##### Helper functions for getting information about a DFA
+
+The following examples will use the `DFA` object created above.
+
+```python
+# returns next state from the provided state by symbol
+automaton.get_transition("s1", "1") # returns "s2"
+automaton.get_transition("s1", "0") # returns "s4"
+```
+
+```python
+# returns set of symbols between two (directly) adjacent states
+automaton.get_symbols_between_states("s1", "s2") # returns {"1"}
+automaton.get_symbols_between_states("s3", "s5") # returns {"1", "0"}
+automaton.get_symbols_between_states("s1", "s3") # returns set()
+```
+
+```python
+# returns True if the given string is accepted by the automaton, False otherwise
+# IMPORTANT: the automaton needs to be valid (see below) to be able to test 
 automaton.is_accepted("11") # True
 automaton.is_accepted("00") # True
 automaton.is_accepted("10") # False
 ```
 
-### Nondeterministic finite automata (NFA)
+```python
+# Checks whether the DFA is valid:
+#     1. The states set is not empty.
+#     2. The initial state is in states.
+#     3. Final states are subset of states.
+#     4. The alphabet does not contain ε ('').
+#     5. The transition function contains characters only from its alphabet.
+#     6. The transition function contains states only from its states set.
+#     7. The transition function is total.
+automaton.is_valid() # returns True
+```
+
+##### Helper functions for altering a DFA
+
+The `DFA` class contains some helper functions to alter the automata if you wish to implement an algorithm for example. Some use-cases are described below, with pictures of automata to show how it progressively changes.
+
+```python
+# all params are optional, but to be able to check whether it accepts a given input,
+# it needs to have them all defined
+showcase_dfa: DFA = DFA(alphabet={"a", "b", "c"}) 
+
+# adds a singular state to automaton
+# second param specifies if the state is final - defaults to False
+showcase_dfa.add_state("s1", False) # returns True - automaton was altered
+showcase_dfa.add_state("s1") # returns False - nothing changed, since state s1 already exists
+```
+
+</br>
+
+[![DFA object with a single state](https://mermaid.ink/img/pako:eNoljbsOwjAQBH_F2iqR0qR1TQkNtNeccgexwHbkR4Gi_DsHdKvd0c6OJYvC41F4W935Ssk5V-dhqPM4YkLUEjmIEft3IrRVoxK8ReHyJFA6jOPe8u2dFvhWuk7om3DTU2A7jvB3flVrVULL5fJX_szHB1eJKhw?type=png)](https://mermaid.live/edit#pako:eNoljbsOwjAQBH_F2iqR0qR1TQkNtNeccgexwHbkR4Gi_DsHdKvd0c6OJYvC41F4W935Ssk5V-dhqPM4YkLUEjmIEft3IrRVoxK8ReHyJFA6jOPe8u2dFvhWuk7om3DTU2A7jvB3flVrVULL5fJX_szHB1eJKhw)
+
+```python
+showcase_dfa.add_state("s2") 
+showcase_dfa.add_state("s4") 
+```
+
+</br>
+
+[![DFA object with three disjointed states](https://mermaid.ink/img/pako:eNplkbEKwjAQhl8lHAgKDTRtXSI4iKuTjllCc2qwbUqaDkV8d68VEtRM-b78Obi7J9TOIEi4ed3f2eWgOkZntWJDvl4P-WbzEYMgEpEKoiJSRVTNlD4LxrngfE_RJIsoy2-ZL3KbZDknsz8tYrZKsoqy_Jbi9_v2t6rqSM8dhKlB6phdbdNw1-vahknmGT1498BkdpBBi77V1tDMnksNCHdsUYGkq9H-oUB1L8rpMbjz1NUggx8xg7E3OuDRahp1C_Kqm4EsGhucP32WsOzi9QbHTGp1?type=png)](https://mermaid.live/edit#pako:eNplkbEKwjAQhl8lHAgKDTRtXSI4iKuTjllCc2qwbUqaDkV8d68VEtRM-b78Obi7J9TOIEi4ed3f2eWgOkZntWJDvl4P-WbzEYMgEpEKoiJSRVTNlD4LxrngfE_RJIsoy2-ZL3KbZDknsz8tYrZKsoqy_Jbi9_v2t6rqSM8dhKlB6phdbdNw1-vahknmGT1498BkdpBBi77V1tDMnksNCHdsUYGkq9H-oUB1L8rpMbjz1NUggx8xg7E3OuDRahp1C_Kqm4EsGhucP32WsOzi9QbHTGp1)
+
+```python
+# adds a transition from s1 to s2 by '1'
+showcase_dfa.add_transition("s1", "s2", "1") # returns True - it changed the automaton
+
+# this will not change the automaton, since transition from s1 by '1' already exists
+showcase_dfa.add_transition("s1", "s4", "1") # returns False - nothing changed
+```
+
+</br>
+
+[![DFA object with three states, but one is disconnected (1)](https://mermaid.ink/img/pako:eNplkbEKwjAQhl8lHAgVGmjaukRwctRF1yyhOTXYNiVNhyK-u9eKKWqmfF_-HMndAypnECRcve5u7HBSLaO1WrE-S5I-W6_fohdEIlJOlEcqicqJPlnGueB8R7mlXB5l8S2zWW4WWUzJ9E-LmC0XWUZZfEvxe33zW1W1pKfnhrFG-i672LrmrtOVDaPMUjrw7o6L2UIKDfpGW0MNe8w1INywQQWStkb7uwLVPimnh-DOY1uBDH7AFIbO6IB7q6nPDciLrnuyaGxw_viewDyI5wsQuGoT?type=png)](https://mermaid.live/edit#pako:eNplkbEKwjAQhl8lHAgVGmjaukRwctRF1yyhOTXYNiVNhyK-u9eKKWqmfF_-HMndAypnECRcve5u7HBSLaO1WrE-S5I-W6_fohdEIlJOlEcqicqJPlnGueB8R7mlXB5l8S2zWW4WWUzJ9E-LmC0XWUZZfEvxe33zW1W1pKfnhrFG-i672LrmrtOVDaPMUjrw7o6L2UIKDfpGW0MNe8w1INywQQWStkb7uwLVPimnh-DOY1uBDH7AFIbO6IB7q6nPDciLrnuyaGxw_viewDyI5wsQuGoT)
+
+```python
+# this method either adds a transition like above, or overwrites the existing one
+# the transition from s1 by '1' gets redirected to the state s4
+dfa_showcase.set_transition("s1", "s4", "1") # returns None
+```
+
+</br>
+
+[![DFA object with three states, but one is disconnected (2)](https://mermaid.ink/img/pako:eNplkT8LwjAQxb9KOBAUGmjaukRwEFcnHbOE5tRg25Q0HYr43b1WTP2TKe93L4_L3R1KZxAkXLxur-y0Uw2js1iwLl0uu3S1eoFOkBJRZaSyqApSxajeXsa54HxLlTkuizD_hukE1zPMR2fyh0X0fqQWEebfUPw-X_-mqobw2G4YKqTvsrOtKu5aXdowyDShgnc3nMkGEqjR19oaGth9yoBwxRoVSLoa7W8KVPMgn-6DOw5NCTL4HhPoW6MD7q2mOdcgz7rqiKKxwfnDawPTIh5PBxxqDQ?type=png)](https://mermaid.live/edit#pako:eNplkT8LwjAQxb9KOBAUGmjaukRwEFcnHbOE5tRg25Q0HYr43b1WTP2TKe93L4_L3R1KZxAkXLxur-y0Uw2js1iwLl0uu3S1eoFOkBJRZaSyqApSxajeXsa54HxLlTkuizD_hukE1zPMR2fyh0X0fqQWEebfUPw-X_-mqobw2G4YKqTvsrOtKu5aXdowyDShgnc3nMkGEqjR19oaGth9yoBwxRoVSLoa7W8KVPMgn-6DOw5NCTL4HhPoW6MD7q2mOdcgz7rqiKKxwfnDawPTIh5PBxxqDQ)
+
+```python
+showcase_dfa.set_transition("s1", "s2", "1") 
+showcase_dfa.set_transition("s1", "s4", "0") 
+```
+
+</br>
+
+[![DFA object with three states](https://mermaid.ink/img/pako:eNptkUsLwjAQhP9KWBAsNNCXlwiePOpFr7mEZtVg25Q0PRTpf3fbYusrp8yXySTMPiC3GkHA1an6xg4nWTFaqxVrovW6iYJgAk1MKp5VQiqZVUYqG9TLyziPOd-R741EI8mWB5LZln7CyblZYDo4wx_8NzWbYfoJ4-_rm-9UWREevuu7AqkAdjFFwW2tcuM7EYV04OwdF7KFEEp0pTKaKnyMGeBvWKIEQVut3F2CrHryqdbbc1flILxrMYS21srj3ihqvgRxUUVDFLXx1h2nmYyj6Z-YSm4K?type=png)](https://mermaid.live/edit#pako:eNptkUsLwjAQhP9KWBAsNNCXlwiePOpFr7mEZtVg25Q0PRTpf3fbYusrp8yXySTMPiC3GkHA1an6xg4nWTFaqxVrovW6iYJgAk1MKp5VQiqZVUYqG9TLyziPOd-R741EI8mWB5LZln7CyblZYDo4wx_8NzWbYfoJ4-_rm-9UWREevuu7AqkAdjFFwW2tcuM7EYV04OwdF7KFEEp0pTKaKnyMGeBvWKIEQVut3F2CrHryqdbbc1flILxrMYS21srj3ihqvgRxUUVDFLXx1h2nmYyj6Z-YSm4K)
+
+```python
+showcase_dfa.add_state("s3")
+showcase_dfa.add_transition("s2", "s3", "1")
+showcase_dfa.add_transition("s4", "s3", "0")
+
+# add the final state
+showcase_dfa.add_state("s5", True)
+showcase_dfa.add_transition("s2", "s5", "0")
+showcase_dfa.add_transition("s3", "s5", "0")
+showcase_dfa.add_transition("s3", "s5", "1")
+showcase_dfa.add_transition("s4", "s3", "1")
+showcase_dfa.add_transition("s5", "s5", "0")
+showcase_dfa.add_transition("s5", "s5", "1")
+```
+
+</br>
+
+[![DFA with missing initial state](https://mermaid.ink/img/pako:eNpdkU2LgzAQhv9KGCgoKBg_Lin01GN76R43ewhm2oaqkRgPUvrfd7SYtZtTnieTN0PmCbXVCAJuTvV3drrIjtHa7diQRdGQxfFbDJyIB8qJ8kAFURGoJCoDVRFhFc-8if5mPyxNDxS7xhPyxeTrE8EUG5MtplofnmuST8dDVbk2FEyxMfzjVvU_SXbU6HzipwapY3Y1TZPaXtXGTyJL6MDZB_6ZPSTQomuV0fSdzyUD_B1blCBoq5V7SJDdi-rU6O3X1NUgvBsxgbHXyuPRKJpCC-KqmoEsauOtO7_ns4zp9QvrunKd?type=png)](https://mermaid.live/edit#pako:eNpdkU2LgzAQhv9KGCgoKBg_Lin01GN76R43ewhm2oaqkRgPUvrfd7SYtZtTnieTN0PmCbXVCAJuTvV3drrIjtHa7diQRdGQxfFbDJyIB8qJ8kAFURGoJCoDVRFhFc-8if5mPyxNDxS7xhPyxeTrE8EUG5MtplofnmuST8dDVbk2FEyxMfzjVvU_SXbU6HzipwapY3Y1TZPaXtXGTyJL6MDZB_6ZPSTQomuV0fSdzyUD_B1blCBoq5V7SJDdi-rU6O3X1NUgvBsxgbHXyuPRKJpCC-KqmoEsauOtO7_ns4zp9QvrunKd)
+
+The `dfa` pictured above is still not a valid DFA, since it lacks an initial state. This can be fixed by simply editing the `initial_state` property. The automaton is now equivalent to the **More complex example** shown above.
+
+```python
+dfa_showcase.is_valid() # returns False
+
+dfa_showcase.initial_state = "s1"
+
+dfa_showcase.is_valid() # returns True
+```
+
+</br>
+
+[![Valid DFA object](https://mermaid.ink/img/pako:eNpdkT1vwyAQhv8KusmWbMn4YyFSpoztkoxxB2QuDfIHFsaDFeW_50ILTcrE83C8nI4bdEYhCPi2cr6yj2M7MVpLkSRLkaa_xIl4pJKojFQRVZFqojpSkxA26ZND7pl9sTzfU2bIJuTelCE_murFFN404dVnTfbueKyqQzfRVC-Gv91q_id5v7htQGqXXfQw5GaWnXabKDI6sKbHP7ODDEa0o9SKpnjzAeCuOGILgrZK2r6FdrpTnVydOW1TB8LZFTNYZyUdHrSk4Y8gLnJYyKLSztjPn2_xv3N_AFuwcV8?type=png)](https://mermaid.live/edit#pako:eNpdkT1vwyAQhv8KusmWbMn4YyFSpoztkoxxB2QuDfIHFsaDFeW_50ILTcrE83C8nI4bdEYhCPi2cr6yj2M7MVpLkSRLkaa_xIl4pJKojFQRVZFqojpSkxA26ZND7pl9sTzfU2bIJuTelCE_murFFN404dVnTfbueKyqQzfRVC-Gv91q_id5v7htQGqXXfQw5GaWnXabKDI6sKbHP7ODDEa0o9SKpnjzAeCuOGILgrZK2r6FdrpTnVydOW1TB8LZFTNYZyUdHrSk4Y8gLnJYyKLSztjPn2_xv3N_AFuwcV8)
+
+```python
+# strings can now be tested
+automaton.is_accepted("11") # True
+automaton.is_accepted("00") # True
+automaton.is_accepted("10") # False
+```
+
+Transitions and states can also be removed:
+
+```python
+# removes the transition from s1 by '0'
+dfa_showcase.remove_transition("s1", "0")
+```
+
+</br>
+
+[![DFA object with removed transition](https://mermaid.ink/img/pako:eNpdkT1rwzAQhv-KOAjYYIM_FxUyZUyWZKw7COvSCH_IyPJgQv57L3KlJtWk59Hx6ri7Q6slAodvI6YbO56bkdGZsyiaszj-pZwoD1QQFYFKojJQRVQFqiPCOn6yz_1kXyxN95TpswlzZwqfH0z5YjJnav_rsyZ5c7vdFrbJyjcUTPli8rew-n-Y87Nde6SO2VX1faon0Sq78iyhB6M7_DMfkMCAZhBK0iDvLgDsDQdsgNNVCtM10IwPqhOL1Zd1bIFbs2ACyySFxYMSNP8B-FX0M1mUympz2jbjFvT4AUZlcck?type=png)](https://mermaid.live/edit#pako:eNpdkT1rwzAQhv-KOAjYYIM_FxUyZUyWZKw7COvSCH_IyPJgQv57L3KlJtWk59Hx6ri7Q6slAodvI6YbO56bkdGZsyiaszj-pZwoD1QQFYFKojJQRVQFqiPCOn6yz_1kXyxN95TpswlzZwqfH0z5YjJnav_rsyZ5c7vdFrbJyjcUTPli8rew-n-Y87Nde6SO2VX1faon0Sq78iyhB6M7_DMfkMCAZhBK0iDvLgDsDQdsgNNVCtM10IwPqhOL1Zd1bIFbs2ACyySFxYMSNP8B-FX0M1mUympz2jbjFvT4AUZlcck)
+
+```python
+# removes the state s4 and every transition associated with it
+dfa_showcase.remove_state("s4")
+```
+
+</br>
+
+[![DFA object after removing a state](https://mermaid.ink/img/pako:eNplkT1rwzAQhv-KOAjYYIM_5EWFTh3bJRnrDsK6NCK2ZSR5MCH_vRe1kkurSc-j471Dd4PBKAQBn1YuF_Z67GdGx1VZ5qo8_6GaqE7UEDWRDgfmWhJteuZEPFGXEXb5g2P0O_tgZflMsTGesA6m2UObJNvYl0wVTPer96Os-KfrVMt3yZOMkTw16eK8f_OCd34bkUZnZz2OpVnkoP0mqoIerLnibp6ggAntJLWiT72FAPAXnLAHQVcl7bWHfr5TnVy9OW3zAMLbFQtYFyU9vmhJu5hAnOXoyKLS3ti37y2FZd2_AMruc3E?type=png)](https://mermaid.live/edit#pako:eNplkT1rwzAQhv-KOAjYYIM_5EWFTh3bJRnrDsK6NCK2ZSR5MCH_vRe1kkurSc-j471Dd4PBKAQBn1YuF_Z67GdGx1VZ5qo8_6GaqE7UEDWRDgfmWhJteuZEPFGXEXb5g2P0O_tgZflMsTGesA6m2UObJNvYl0wVTPer96Os-KfrVMt3yZOMkTw16eK8f_OCd34bkUZnZz2OpVnkoP0mqoIerLnibp6ggAntJLWiT72FAPAXnLAHQVcl7bWHfr5TnVy9OW3zAMLbFQtYFyU9vmhJu5hAnOXoyKLS3ti37y2FZd2_AMruc3E)
+
+##### Visualization
+
+`DFA` objects can be visualized in two ways: `print` and `automaton_to_graphviz`. The following example uses the `automaton` object from the **More complex example** section.
+
+```python
+from ib110.automaton.utils import automaton_to_graphviz
+
+print(automaton) 
+# alphabet: 0,1
+# states: s1,s5,s3,s2,s4
+# final states: s3
+# 
+#      DFA      |    0    |    1    
+# ----------------------------------
+# -->  s1       |   s4    |   s2    
+#      s2       |   s5    |   s3    
+# <--  s3       |   s5    |   s5    
+#      s4       |   s3    |   s5    
+#      s5       |   s5    |   s5   
+```
+
+The following produces a .dot (graphviz) file which can then be viewed by either downloading a graphviz extension (such as [this](https://marketplace.visualstudio.com/items?itemName=joaompinto.vscode-graphviz)) or by going [here](https://dreampuf.github.io/GraphvizOnline) and pasting the result.
+
+```python
+automaton_to_graphviz(automaton, path="./automaton.dot")
+```
+
+## Nondeterministic finite automata (NFA)
 
 The implementation for the NFA can be found in the file `nfa.py` with a description of each function.
 
-#### Example use-case of NFA:
+### Example use-case of NFA
 
 Transition function of an NFA is described by the `NFATransitions`. It is an alias to `Dict[str, Dict[str, Set[str]]]`. It is similar to the `DFATransitions` but instead of the next-state string, there is a **set** of next-state strings.
 
-**Example of a transition function**</br>
+#### Example of a NFA transition function
+
+</br>
+
 [![](https://mermaid.ink/img/pako:eNplkD0PgjAQhv9KcxMkkPCx1cTJURcdxaGhhzS0lJQyEMJ_9yyog536PNf3ctcFaisRODydGFp2vlY9ozPmUTTmcbxTQVR8qSQq37RzdmcPlqZHSn3ShFkwxZ8pt1zwo581UgPWKK1TO4ha-ZlnCRWc7fBnDpCAQWeEkjTrEhqAb9FgBZyuUriugqpf6Z2YvL3NfQ3cuwkTmAYpPJ6UoBUN8EbokSxK5a27bMuHP1hf2DVPmA?type=png)](https://mermaid.live/edit#pako:eNplkD0PgjAQhv9KcxMkkPCx1cTJURcdxaGhhzS0lJQyEMJ_9yyog536PNf3ctcFaisRODydGFp2vlY9ozPmUTTmcbxTQVR8qSQq37RzdmcPlqZHSn3ShFkwxZ8pt1zwo581UgPWKK1TO4ha-ZlnCRWc7fBnDpCAQWeEkjTrEhqAb9FgBZyuUriugqpf6Z2YvL3NfQ3cuwkTmAYpPJ6UoBUN8EbokSxK5a27bMuHP1hf2DVPmA)
 Transition shown above can be implemented like so:
 
@@ -100,7 +297,10 @@ transition_fn: NFATransitions = {
 }
 ```
 
-**More complex example**</br>
+#### More complex NFA example
+
+</br>
+
 [![](https://mermaid.ink/img/pako:eNpNkD0PgjAQhv9KcxMkkPA11cTJURcdxaGhhzQWSkoZCOG_e1ZAO_V5enkvfWeojETg8LSib9j5WnaMzpAGwZCG4UoZUbZTHhDm4c4FYfGhlZM7e7A4PlLKlkaYepNtibvJ_2YSb4otdzd-xtvBTRppBauV1rHpRaXcxJOIHqx54c8cIIIWbSuUpN_NPgBcgy2WwOkqhX2VUHYLzYnRmdvUVcCdHTGCsZfC4UkJKqUFXgs9kEWpnLGXb12-teUNz6daTA?type=png)](https://mermaid.live/edit#pako:eNpNkD0PgjAQhv9KcxMkkPA11cTJURcdxaGhhzQWSkoZCOG_e1ZAO_V5enkvfWeojETg8LSib9j5WnaMzpAGwZCG4UoZUbZTHhDm4c4FYfGhlZM7e7A4PlLKlkaYepNtibvJ_2YSb4otdzd-xtvBTRppBauV1rHpRaXcxJOIHqx54c8cIIIWbSuUpN_NPgBcgy2WwOkqhX2VUHYLzYnRmdvUVcCdHTGCsZfC4UkJKqUFXgs9kEWpnLGXb12-teUNz6daTA)
 
 ```python
@@ -132,9 +332,37 @@ automaton.is_accepted("00") # True
 automaton.is_accepted("10") # False
 ```
 
+#### NFA helper functions
+
+Below are described some use-cases of the implemented helper functions. If you want to learn more about them, check the `automaton/nfa.py` file containing the implementation with further documentation.
+
+##### Helper functions for getting information about an NFA
+
+All of the NFA class methods for getting information about the automaton. The difference is only in the `is_valid` method which has different requirements:
+
+```python
+#Checks whether the NFA is valid:
+#    1. States set is not empty.
+#    2. Initial state is in states.
+#    3. Final states are subset of states.
+#    4. The transition function contains characters only from its alphabet.
+#    5. The transition function contains states only from its states set.
+automaton.is_valid() # returns true
+```
+
+##### Helper functions for altering an NFA
+
+All of the NFA class methods for altering the automaton are used the same way as with DFA class instead of one:
+
+```python
+# this method either adds a transition, or overwrites the existing one
+# the difference compared to the DFA is that it takes a *set* of next states
+automaton.set_transition("s1", {"s2"}, "1")
+```
+
 # TURING MACHINE
 
-This library supports a **deterministic** and **multi-tape** Turing machines. You can find the implementation in the module `turing`.
+This library supports **deterministic** and **multi-tape** Turing machines. You can find the implementation in the module `turing`.
 
 ## Tape
 
