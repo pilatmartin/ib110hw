@@ -43,9 +43,4 @@ def load_dtm_from_file(file_path: str) -> Optional[DTM]:
 
 
 if __name__ == "__main__":
-    machine = load_dtm_from_file("./turing/test.txt")
-    # machine.write_to_tape("abba")
-    # print(machine.tape)
-    # print(machine.transitions)
-
-    # machine.simulate()
+    pass

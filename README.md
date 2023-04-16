@@ -8,14 +8,14 @@ Using virtual environment is of course optional, but recommended.
 # Bash
 $ python3 -m venv <name> 
 $ source <name>/bin/activate
-$ pip install ib110hw_testing
+$ pip install ib110hw
 ```
 
 ```powershell
 # Windows Powershell
 PS> py -m venv <name> 
 PS> <name>\Scripts\Activate.ps1
-PS> pip install ib110hw_testing
+PS> pip install ib110hw
 ```
 
 Below is an overview of how these computational models can be used. Further documentation is located in the files with the implementation.
