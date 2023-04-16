@@ -77,7 +77,7 @@ class DFA(BaseFiniteAutomaton):
 
     def set_transition(self, state_from: str, state_to: str, symbol: str) -> None:
         """
-        Adds/changes transition to automaton.
+        Adds/changes transition.
         If the automaton already contains transition from 'state_from' by 'symbol', it will be overwritten.
 
         Args:

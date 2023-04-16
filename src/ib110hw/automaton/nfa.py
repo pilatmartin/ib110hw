@@ -98,7 +98,7 @@ class NFA(BaseFiniteAutomaton):
 
         Args:
             state_from (str): State name where the transition starts.
-            states_to (Set[str]): Set of states where the transition ends.
+            state_to (str): State name where the transition ends.
             symbol (str): Transition symbol.
 
         Returns:
@@ -250,5 +250,4 @@ class NFA(BaseFiniteAutomaton):
 
 
 if __name__ == "__main__":
-    idk = {f"{i}" for i in range(10)}
-    idk.difference_update
+    pass
