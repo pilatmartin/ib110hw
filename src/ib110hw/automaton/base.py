@@ -25,11 +25,12 @@ class BaseFiniteAutomaton:
         self.final_states = final_states or set()
 
     def __repr__(self) -> str:
-        alphabet_str = ",".join(self.alphabet)
-        states_str = ",".join(self.states)
-        final_states_str = ",".join(self.final_states)
+        alphabet_str = f"alphabet: {','.join(sorted(self.alphabet))}"
+        states_str = f"states: {','.join(sorted(self.states))}"
+        initial_str = f"initial state: {self.initial_state}"
+        final_states_str = f"final states: {','.join(sorted(self.final_states))}"
 
-        return f"alphabet: {alphabet_str}\nstates: {states_str}\nfinal states: {final_states_str}\n"
+        return f"{alphabet_str}\n{states_str}\n{initial_str}\n{final_states_str}\n"
 
     def __repr_row_prefix__(self, state: str):
         if state == self.initial_state:
