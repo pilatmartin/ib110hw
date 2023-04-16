@@ -1,5 +1,23 @@
 This library was created for the course **IB110 - Introduction to Informatics** at [MUNI FI](https://www.fi.muni.cz/).
 
+# INSTALLATION
+
+Using virtual environment is of course optional, but recommended.
+
+```sh
+# Bash
+$ python3 -m venv <name> 
+$ source <name>/bin/activate
+$ pip install ib110hw_testing
+```
+
+```powershell
+# Windows Powershell
+PS> py -m venv <name> 
+PS> <name>\Scripts\Activate.ps1
+PS> pip install ib110hw_testing
+```
+
 Below is an overview of how these computational models can be used. Further documentation is located in the files with the implementation.
 
 # FINITE AUTOMATA
@@ -15,10 +33,8 @@ In order to create an automaton you will need to specify the five-tuple `(Q, Σ,
 
 `DFA` and `NFA` objects can be created in two ways:
 
-1. If you know exactly how the automaton should look like you can create id directly - section **Example use-case of DFA** and **Example use-case of NFA**.
+1. If you know exactly how the automaton should look like you can create it directly - section **Example use-case of DFA** and **Example use-case of NFA**.
 2. If you are implementing an algorithm, for example, you can use helper functions - described in section **DFA helper functions** and **NFA helper functions**.
-
-There are implemented some helper functions if you need to update the automata dynamically. (`remove_state(...)`, `add_transition(...)`, `is_valid()`, ...)
 
 ## Deterministic finite automata (DFA)
 
@@ -38,9 +54,9 @@ Transition shown above can be written like so:
 
 ```python
 transition_fn: DFATransitions = {
-    "s1": {
-        "0": "s2",
-        "1": "s2",
+    "s1": { # from s1
+        "0": "s2", # via 0 to s2
+        "1": "s2", # via 1 to s2
     },
 }
 ```
@@ -193,6 +209,7 @@ showcase_dfa.add_transition("s4", "s3", "0")
 
 # add the final state
 showcase_dfa.add_state("s5", True)
+
 showcase_dfa.add_transition("s2", "s5", "0")
 showcase_dfa.add_transition("s3", "s5", "0")
 showcase_dfa.add_transition("s3", "s5", "1")
@@ -267,7 +284,7 @@ print(automaton)
 #      s5       |   s5    |   s5   
 ```
 
-The following produces a .dot (graphviz) file which can then be viewed by either downloading a graphviz extension (such as [this](https://marketplace.visualstudio.com/items?itemName=joaompinto.vscode-graphviz)) or by going [here](https://dreampuf.github.io/GraphvizOnline) and pasting the result.
+The following produces a .dot (graphviz) file which can then be viewed by either downloading an extension/plugin ([vscode link](https://marketplace.visualstudio.com/items?itemName=joaompinto.vscode-graphviz), [jetbrains link](https://plugins.jetbrains.com/plugin/10312-dot-language)) or by going [here](https://dreampuf.github.io/GraphvizOnline) and pasting the result.
 
 ```python
 automaton_to_graphviz(automaton, path="./automaton.dot")
@@ -286,6 +303,7 @@ Transition function of an NFA is described by the `NFATransitions`. It is an ali
 </br>
 
 [![](https://mermaid.ink/img/pako:eNplkD0PgjAQhv9KcxMkkPCx1cTJURcdxaGhhzS0lJQyEMJ_9yyog536PNf3ctcFaisRODydGFp2vlY9ozPmUTTmcbxTQVR8qSQq37RzdmcPlqZHSn3ShFkwxZ8pt1zwo581UgPWKK1TO4ha-ZlnCRWc7fBnDpCAQWeEkjTrEhqAb9FgBZyuUriugqpf6Z2YvL3NfQ3cuwkTmAYpPJ6UoBUN8EbokSxK5a27bMuHP1hf2DVPmA?type=png)](https://mermaid.live/edit#pako:eNplkD0PgjAQhv9KcxMkkPCx1cTJURcdxaGhhzS0lJQyEMJ_9yyog536PNf3ctcFaisRODydGFp2vlY9ozPmUTTmcbxTQVR8qSQq37RzdmcPlqZHSn3ShFkwxZ8pt1zwo581UgPWKK1TO4ha-ZlnCRWc7fBnDpCAQWeEkjTrEhqAb9FgBZyuUriugqpf6Z2YvL3NfQ3cuwkTmAYpPJ6UoBUN8EbokSxK5a27bMuHP1hf2DVPmA)
+
 Transition shown above can be implemented like so:
 
 ```python
