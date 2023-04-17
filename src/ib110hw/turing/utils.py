@@ -23,10 +23,10 @@ def load_dtm_from_file(file_path: str) -> Optional[DTM]:
     """
     definition = read_file(file_path)
 
-    if (err := validate_configuration(definition)) or (
-        err := validate_dtm_transitions(definition)
-    ):
-        print(err, file=stderr)
+    config_err = validate_configuration(definition)
+    transitions_err = validate_dtm_transitions(definition)
+    if config_err or transitions_err:
+        print(config_err or transitions_err, file=stderr)
         return None
 
     init, acc, rej, abc = get_configuration(definition)

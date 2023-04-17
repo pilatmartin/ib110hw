@@ -2,7 +2,8 @@ This library was created for the course **IB110 - Introduction to Informatics** 
 
 # INSTALLATION
 
-Using virtual environment is of course optional, but recommended.
+Python version >=3.6 is required in order to use the library.
+Using virtual environment for installation is of course optional, but recommended.
 
 ```sh
 # Bash

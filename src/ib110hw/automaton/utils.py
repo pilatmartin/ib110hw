@@ -25,7 +25,8 @@ def automaton_to_graphviz(automaton: Union[NFA, DFA], path: str) -> None:
                     label_symbols.discard("")
                     label_symbols.add("ε")
 
-                if label := ",".join(label_symbols):
+                label = ",".join(label_symbols)
+                if label:
                     file.write(f'\t{s_from} -> {s_to}[label="{label}"]\n')
 
         for non_fin_state in automaton.states.difference(automaton.final_states):

@@ -196,7 +196,8 @@ class DFA(BaseFiniteAutomaton):
         current_state = self.initial_state
 
         for symbol in input_string:
-            if not (current_state := self.get_transition(current_state, symbol)):
+            current_state = self.get_transition(current_state, symbol)
+            if not current_state:
                 return False
 
         return current_state in self.final_states

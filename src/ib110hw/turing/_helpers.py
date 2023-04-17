@@ -106,8 +106,9 @@ def validate_configuration(definition: List[str]) -> Optional[str]:
     if not any((l.startswith("init") for l in config)):
         return "Specifying the initial state is mandatory."
 
-    if l := next((l for l in config if l.startswith("init")), None):
-        if len(l.split()) != 2:
+    init_line = next((l for l in config if l.startswith("init")), None)
+    if init_line:
+        if len(init_line.split()) != 2:
             return "Invalid initial state"
 
 
@@ -125,23 +126,29 @@ def validate_dtm_transitions(definition: List[str]) -> Optional[str]:
     # checks the direction
     valid_dir = lambda l: get_part(l, 1).split()[-1] in ["L", "R", "S"]
 
-    if l := next((l for l in lines if "->" not in l), None):
-        return f"Missing arrow in rule:\n{l}."
+    rule = next((l for l in lines if "->" not in l), None)
+    if rule:
+        return f"Missing arrow in rule:\n{rule}."
 
-    if l := next((l for l in lines if not valid_current(l)), None):
-        return f"Invalid combination of state and read symbol in rule:\n{l}"
+    rule = next((l for l in lines if not valid_current(l)), None)
+    if rule:
+        return f"Invalid combination of state and read symbol in rule:\n{rule}"
 
-    if l := next((l for l in lines if not valid_read(l)), None):
-        return f"Invalid read symbol length (> 1) in rule\n{l}"
+    rule = next((l for l in lines if not valid_read(l)), None)
+    if rule:
+        return f"Invalid read symbol length (> 1) in rule\n{rule}"
 
-    if l := next((l for l in lines if not valid_next(l)), None):
-        return f"The next state, write symbol or direction is missing in rule:\n{l}"
+    rule = next((l for l in lines if not valid_next(l)), None)
+    if rule:
+        return f"The next state, write symbol or direction is missing in rule:\n{rule}"
 
-    if l := next((l for l in lines if not valid_write(l)), None):
-        return f"Invalid write symbol length (> 1) in rule\n{l}"
+    rule = next((l for l in lines if not valid_write(l)), None)
+    if rule:
+        return f"Invalid write symbol length (> 1) in rule\n{rule}"
 
-    if l := next((l for l in lines if not valid_dir(l)), None):
-        return f"Invalid direction in rule:\n{l}"
+    rule = next((l for l in lines if not valid_dir(l)), None)
+    if rule:
+        return f"Invalid direction in rule:\n{rule}"
 
 
 if __name__ == "__main__":
