@@ -20,10 +20,10 @@ class DFA(BaseFiniteAutomaton):
         transitions: DFATransitions = None,
     ) -> None:
         if transitions:
-            states = states or set(transitions.keys())
+            states = states if states is not None else set(transitions.keys())
 
         super().__init__(states, alphabet, initial_state, final_states)
-        self.transitions = transitions or {}
+        self.transitions = transitions if transitions is not None else {}
 
     def __repr__(self) -> str:
         return super().__repr__() + "\n" + self.__repr_transitions__()

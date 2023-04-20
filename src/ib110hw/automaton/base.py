@@ -14,15 +14,15 @@ class BaseFiniteAutomaton:
 
     def __init__(
         self,
-        states: Set[str],
-        alphabet: Set[str],
-        initial_state: str,
-        final_states: Set[str],
+        states: Set[str] = None,
+        alphabet: Set[str] = None,
+        initial_state: str = None,
+        final_states: Set[str] = None,
     ) -> None:
-        self.states = states or set()
-        self.alphabet = alphabet or set()
+        self.states = states if states is not None else set()
+        self.alphabet = alphabet if alphabet is not None else set()
         self.initial_state = initial_state
-        self.final_states = final_states or set()
+        self.final_states = final_states if final_states is not None else set()
 
     def __repr__(self) -> str:
         alphabet_str = f"alphabet: {','.join(sorted(self.alphabet))}"
