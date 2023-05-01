@@ -84,10 +84,10 @@ def parse_direction(direction: str) -> Optional[Direction]:
 
 def get_dtm_configuration(
     definition: List[str],
-) -> Tuple[str, Set[str], Set[str], Set[str]]:
+) -> Tuple[str, str, str, Set[str]]:
     config = list(takewhile(lambda l: l.strip() != "---", definition))[:-1]
-    init = ""
-    acc, rej, abc = set(), set(), set()
+    init, acc, rej = "", "", ""
+    alphabet = set()
 
     for line in config:
         if line.startswith("init"):
@@ -97,14 +97,14 @@ def get_dtm_configuration(
         elif line.startswith("rej"):
             rej = {*line.split()[1:]}
         elif line.startswith("alphabet"):
-            abc = {*line.split()[1:]}
+            alphabet = {*line.split()[1:]}
 
-    return init, acc or set(), rej or set(), abc or set()
+    return init, acc, rej, alphabet or set()
 
 
 def get_mtm_configuration(
     definition: List[str],
-) -> Tuple[str, Set[str], Set[str], Set[str], int]:
+) -> Tuple[str, str, str, Set[str], int]:
     config = next(
         (
             idk

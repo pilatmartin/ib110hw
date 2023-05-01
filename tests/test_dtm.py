@@ -18,8 +18,8 @@ PALINDROME_MACHINE: DTM = DTM(
         "reject",
     },
     input_alphabet={"a", "b"},
-    acc_states={"accept"},
-    rej_states={"reject"},
+    acc_state="accept",
+    rej_state="reject",
     initial_state="init",
     transitions={
         "init": {

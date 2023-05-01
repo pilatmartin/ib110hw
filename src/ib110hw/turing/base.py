@@ -18,15 +18,15 @@ class BaseTuringMachine:
         self,
         states: Set[str],
         input_alphabet: Set[str],
-        acc_states: Set[str],
-        rej_states: Set[str],
+        acc_state: str = "accept",
+        rej_state: str = "reject",
         initial_state: str = "init",
         start_symbol: str = ">",
     ) -> None:
         self.states = states or set()
         self.input_alphabet = input_alphabet or set()
-        self.acc_states = acc_states or set()
-        self.rej_states = rej_states or set()
+        self.acc_state = acc_state
+        self.rej_state = rej_state
         self.initial_state = initial_state
         self.start_symbol = start_symbol
 

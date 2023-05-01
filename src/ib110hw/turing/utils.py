@@ -14,8 +14,6 @@ from _helpers import (
 from typing import Optional
 from sys import stderr
 
-from tape import Direction
-
 
 def load_dtm_from_file(file_path: str) -> Optional[DTM]:
     """
@@ -42,9 +40,9 @@ def load_dtm_from_file(file_path: str) -> Optional[DTM]:
     return DTM(
         states={*transitions.keys()},
         input_alphabet=abc,
-        acc_states=acc,
+        acc_state=acc,
+        rej_state=rej,
         initial_state=init,
-        rej_states=rej,
         transitions=transitions,
     )
 
@@ -74,9 +72,9 @@ def load_mtm_from_file(file_path: str) -> Optional[MTM]:
     return MTM(
         states={*transitions.keys()},
         input_alphabet=abc,
-        acc_states=acc,
+        acc_state=acc,
+        rej_state=rej,
         initial_state=init,
-        rej_states=rej,
         tape_count=tape_count,
         transitions=transitions,
     )

@@ -23,8 +23,8 @@ class MTM(BaseTuringMachine):
         self,
         states: Set[str] = None,
         input_alphabet: Set[str] = None,
-        acc_states: Set[str] = None,
-        rej_states: Set[str] = None,
+        acc_state: str = "accept",
+        rej_state: str = "reject",
         transitions: MTMTransitions = None,
         tape_count: int = 2,
         tapes: List[Tape] = None,
@@ -34,8 +34,8 @@ class MTM(BaseTuringMachine):
         super().__init__(
             states,
             input_alphabet,
-            acc_states,
-            rej_states,
+            acc_state,
+            rej_state,
             initial_state,
             start_symbol,
         )
@@ -174,7 +174,7 @@ class MTM(BaseTuringMachine):
         while steps <= (self.max_steps + 1):
             write_machine_configuration()
 
-            if state in self.acc_states:
+            if state == self.acc_state:
                 close_file(output_file)
                 return True
 
@@ -192,7 +192,7 @@ class MTM(BaseTuringMachine):
 
             go_forward()
 
-            if not rule or rule[0] in self.rej_states:
+            if not rule or rule[0] == self.rej_state:
                 close_file(output_file)
                 return False
 
@@ -235,8 +235,8 @@ if __name__ == "__main__":
         states={"init", "goToEnd", "goToStart", "check", "accept", "reject"},
         initial_state="init",
         input_alphabet={"a", "b"},
-        acc_states={"accept"},
-        rej_states={"reject"},
+        acc_state="accept",
+        rej_state="reject",
         transitions=transitions)
 
     machine.write_to_tape("aabbabbaa")

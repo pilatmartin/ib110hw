@@ -381,7 +381,16 @@ automaton.set_transition("s1", {"s2"}, "1")
 
 # TURING MACHINE
 
-This library supports **deterministic** and **multi-tape** Turing machines. You can find the implementation in the module `turing`.
+This library supports **deterministic** and **multi-tape** Turing machines. You can find the implementation in the module `turing`. Consider the class located in the base.py as abstract, its only purpose is to avoid duplicity in the implementation of these models.
+
+In order to create a Turing machine you will need to specify the seven-tuple `(Q, Σ, Γ, δ, q0, q_acc, q_rej)`, where:
+
+- The set of states `Q` is represented by `Set[str]`
+- The set of alphabet symbols `Σ` is represented by `Set[str]`
+- The transition function `δ` is represented by either `DTMTransitions` or `MTMTransitions`. These types are described below.
+- The initial state `q0` is represented by `str`
+- The accepting state `q_acc` is represented by `str`
+- The rejecting state `q_rej` is represented by `str`
 
 ## Tape
 
@@ -411,6 +420,23 @@ print(tape)         # |   | H | a | l | l | o |   |
 tape.clear()        # |   |
                     #   ^
 
+```
+
+The module `tape` also contains enum for the direction of tape head:
+
+```python
+class Direction(Enum):
+    LEFT = -1
+    STAY = 0
+    RIGHT = 1
+    
+    # shorthand aliases
+    L = -1
+    S = 0
+    R = 1
+
+    def __repr__(self):
+        return self.name
 ```
 
 ## Deterministic Turing Machine (DTM)
@@ -462,8 +488,8 @@ transitions: DTMTransitions = {
 machine: DTM = DTM(
     states={"init", "mark", "gotoEndA", "checkA", "gotoEndB", "checkB", "accept", "reject"},
     input_alphabet={"a", "b"},
-    acc_states={"accept"},
-    rej_states={"reject"},
+    acc_states="accept",
+    rej_states="reject",
     initial_state="init",
     transitions=transitions
 )
@@ -486,7 +512,63 @@ function: DTMransitions = {
 }
 ```
 
-# Multi-tape Turing Machine (MTM)
+### Loading From a File
+
+DTM can also be loaded from a file. Format is shown below:
+
+```
+# name of the initial state
+init init
+
+# name of the accepting state
+acc acc
+
+# name of the rejecting state
+rej rej
+
+# alphabet characters without start_symbol
+alphabet a b
+
+---
+
+# current read -> next write direction(L, R, S)
+# ! underscore (_) is used to depict <space> !
+init    > -> mark   > R
+mark    a -> foundA X R
+mark    b -> foundB X R
+mark    X -> acc    X S
+mark    _ -> acc    _ S
+foundA  a -> foundA a R
+foundA  b -> foundA b R
+foundA  X -> checkA X L
+foundA  _ -> checkA _ L
+checkA  a -> back   X L
+checkA  b -> acc    b S
+checkA  X -> rej    X S
+foundB  a -> foundB a R
+foundB  b -> foundB b R
+foundB  X -> checkB X L
+foundB  _ -> checkB _ L
+checkB  a -> reject a S
+checkB  b -> reject X L
+checkB  X -> reject X S
+back    a -> back   a L
+back    b -> back   b L
+back    X -> mark   X R
+
+```
+
+The file above can then be simply loaded using the `load_dtm_from_file(...)`:
+
+```python
+from ib110hw.turing.utils import load_dtm_from_file
+
+machine = load_dtm_from_file("./dtm_file")
+```
+
+## Multi-tape Turing Machine (MTM)
+
+On top of the properties required to create DTM, you will need to specify the number of tapes as well. The default tape count is set to 2.
 
 The following MTM has the same function as the DTM above:
 
@@ -496,24 +578,24 @@ from ib110hw.turing.tape import Direction
 
 transitions: MTMTransitions = {
     "init": {
-        (">", ""): ("copy", (">", ""), (Direction.RIGHT, Direction.STAY))
+        (">", ""): ("copy", (">", ""), (Direction.R, Direction.S))
     },
     "copy": {
-        ("a", ""): ("copy", ("a", "a"), (Direction.RIGHT, Direction.RIGHT)),
-        ("b", ""): ("copy", ("b", "b"), (Direction.RIGHT, Direction.RIGHT)),
-        ("", ""): ("goToStart", ("", ""), (Direction.LEFT, Direction.STAY)),
+        ("a", ""): ("copy", ("a", "a"), (Direction.R, Direction.R)),
+        ("b", ""): ("copy", ("b", "b"), (Direction.R, Direction.R)),
+        ("", ""): ("goToStart", ("", ""), (Direction.L, Direction.S)),
     },
     "goToStart": {
-        ("a", ""): ("goToStart", ("a", ""), (Direction.LEFT, Direction.STAY)),
-        ("b", ""): ("goToStart", ("b", ""), (Direction.LEFT, Direction.STAY)),
-        (">", ""): ("check", (">", ""), (Direction.RIGHT, Direction.LEFT))
+        ("a", ""): ("goToStart", ("a", ""), (Direction.L, Direction.S)),
+        ("b", ""): ("goToStart", ("b", ""), (Direction.L, Direction.S)),
+        (">", ""): ("check", (">", ""), (Direction.R, Direction.L))
     },
     "check": {
-        ("a", "a"): ("check", ("a", "a"), (Direction.RIGHT, Direction.LEFT)),
-        ("b", "b"): ("check", ("b", "b"), (Direction.RIGHT, Direction.LEFT)),
-        ("", ""): ("accept", ("", ""), (Direction.STAY, Direction.STAY)),
-        ("a", "b"): ("reject", ("a", "b"), (Direction.STAY, Direction.STAY)),
-        ("b", "a"): ("reject", ("b", "a"), (Direction.STAY, Direction.STAY)),
+        ("a", "a"): ("check", ("a", "a"), (Direction.R, Direction.L)),
+        ("b", "b"): ("check", ("b", "b"), (Direction.R, Direction.L)),
+        ("", ""): ("accept", ("", ""), (Direction.S, Direction.S)),
+        ("a", "b"): ("reject", ("a", "b"), (Direction.S, Direction.S)),
+        ("b", "a"): ("reject", ("b", "a"), (Direction.S, Direction.S)),
     }
 }
 
@@ -521,8 +603,8 @@ machine: MTM = MTM(
     states={"init", "goToEnd", "goToStart", "check", "accept", "reject"},
     initial_state="init",
     input_alphabet={"a", "b"},
-    acc_states={"accept"},
-    rej_states={"reject"},
+    acc_states="accept",
+    rej_states="reject",
     transitions=transitions)
 
 machine.write_to_tape("aabbabbaa")
@@ -542,6 +624,52 @@ function: MTMransitions = {
 }
 ```
 
+MTM can also be loaded from a file. Format is shown below:
+
+```
+# name of the initial state
+init init
+
+# name of the accepting state
+acc acc
+
+# name of the rejecting state
+rej rej
+
+# alphabet characters without start_symbol
+alphabet a b c
+
+# the amount of tapes (>= 2)
+tapes 2
+
+---
+
+# current (reads) -> next [writes] [directions]([L(eft), R(ight), S(tay)])
+# ! _ (underscore) is used to depict <space> !
+# such spacing is not required
+init        (> _) -> copy         (> _) (R S)
+copy        (a _) -> copy         (a a) (R R)
+copy        (b _) -> copy         (b b) (R R)
+copy        (_ _) -> goToStart    (_ _) (L S)
+goToStart   (a _) -> goToStart    (a _) (L S)
+goToStart   (b _) -> goToStart    (b _) (L S)
+goToStart   (> _) -> check        (> _) (R L)
+check       (a a) -> check        (a a) (R L)
+check       (b b) -> check        (b b) (R L)
+check       (_ _) -> acc          (_ _) (S S)
+check       (a b) -> rej          (a b) (S S)
+check       (b a) -> rej          (b a) (S S)
+
+```
+
+The file above can then be simply loaded using the `load_dtm_from_file(...)`:
+
+```python
+from ib110hw.turing.utils import load_mtm_from_file
+
+machine = load_mtm_from_file("./mtm_file")
+```
+
 # DTM and MTM Simulation
 
 You can simulate the Turing machine using the provided function `simulate(...)`. By default, every step of the Turing machine will be printed to console with 0.5s delay in-between. This behavior can be changed by setting the `to_console` and `delay` parameters. If the parameter `to_console` is set to `False`, the delay will be ignored.
@@ -550,10 +678,16 @@ You can simulate the Turing machine using the provided function `simulate(...)`.
 machine.simulate(to_console=True, delay=0.3) # True
 ```
 
+There is also an option to simulate the calculation step-by-step, i.e., the TM will wait for user input (arrow keys). It allows for going back and forward in the calculation. This can be enabled by setting the `step_by_step` parameter to `True`. The `delay` and `to_console` parameters are ignored.
+
+```python
+machine.simulate(step_by_step=True)
+```
+
 If you want to look at the whole history, you can set parameter `to_file` to `True`. Every step will be printed to file based on the path provided in the parameter `path`. Default path is set to `./simulation.md`.
 
 ```python
-turing.simulate(to_console=False, to_file=True, path="~/my_simulation.md") # True
+machine.simulate(to_console=False, to_file=True, path="~/my_simulation.md") 
 ```
 
 The `BaseTuringMachine` class contains the attribute `max_steps` to avoid infinite looping. By default, it is set to 100. The computation will stop if the simulation exceeds the value specified by this attribute. This can be an issue on larger inputs, so setting it to a bigger number may be needed.

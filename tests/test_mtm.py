@@ -11,8 +11,8 @@ PALINDROME_MACHINE: MTM = MTM(
     states={"init", "goToEnd", "goToStart", "check", "accept", "reject"},
     initial_state="init",
     input_alphabet={"a", "b"},
-    acc_states={"accept"},
-    rej_states={"reject"},
+    acc_state="accept",
+    rej_state="reject",
     transitions={
         "init": {(">", ""): ("copy", (">", ""), (Direction.RIGHT, Direction.STAY))},
         "copy": {

@@ -20,8 +20,8 @@ class DTM(BaseTuringMachine):
         self,
         states: Set[str] = None,
         input_alphabet: Set[str] = None,
-        acc_states: Set[str] = None,
-        rej_states: Set[str] = None,
+        acc_state: str = "accept",
+        rej_states: str = "reject",
         transitions: DTMTransitions = None,
         tape: Tape = None,
         initial_state: str = "init",
@@ -30,7 +30,7 @@ class DTM(BaseTuringMachine):
         super().__init__(
             states,
             input_alphabet,
-            acc_states,
+            acc_state,
             rej_states,
             initial_state,
             start_symbol,
@@ -155,7 +155,7 @@ class DTM(BaseTuringMachine):
         while steps <= (self.max_steps + 1):
             write_machine_configuration()
 
-            if state in self.acc_states:
+            if state == self.acc_state:
                 close_file(output_file)
                 return True
 
@@ -173,7 +173,7 @@ class DTM(BaseTuringMachine):
 
             go_forward()
 
-            if not rule or rule[0] in self.rej_states:
+            if not rule or rule[0] == self.rej_state:
                 close_file(output_file)
                 return False
 
@@ -190,47 +190,47 @@ class DTM(BaseTuringMachine):
 if __name__ == "__main__":
     transitions = {
         "init": {
-            ">": ("findA", ">", Direction.RIGHT),
+            ">": ("findA", ">", Direction.R),
         },
         "findA": {
-            "a": ("findB", "a", Direction.RIGHT),
-            "b": ("findA", "b", Direction.RIGHT),
-            "c": ("findA", "c", Direction.RIGHT),
+            "a": ("findB", "a", Direction.R),
+            "b": ("findA", "b", Direction.R),
+            "c": ("findA", "c", Direction.R),
         },
         "findB": {
-            "a": ("findB", "a", Direction.RIGHT),
-            "b": ("markC", "b", Direction.RIGHT),
-            "c": ("findA", "c", Direction.RIGHT),
+            "a": ("findB", "a", Direction.R),
+            "b": ("markC", "b", Direction.R),
+            "c": ("findA", "c", Direction.R),
         },
         "markC": {
-            "a": ("shiftA", "X", Direction.RIGHT),
-            "b": ("shiftB", "X", Direction.RIGHT),
-            "c": ("shiftC", "X", Direction.RIGHT),
-            "": ("findA", "c", Direction.RIGHT),
+            "a": ("shiftA", "X", Direction.R),
+            "b": ("shiftB", "X", Direction.R),
+            "c": ("shiftC", "X", Direction.R),
+            "": ("findA", "c", Direction.R),
         },
         "shiftA": {
-            "a": ("shiftA", "a", Direction.RIGHT),
-            "b": ("shiftB", "a", Direction.RIGHT),
-            "c": ("shiftC", "a", Direction.RIGHT),
-            "": ("goBack", "a", Direction.LEFT),
+            "a": ("shiftA", "a", Direction.R),
+            "b": ("shiftB", "a", Direction.R),
+            "c": ("shiftC", "a", Direction.R),
+            "": ("goBack", "a", Direction.L),
         },
         "shiftB": {
-            "a": ("shiftA", "b", Direction.RIGHT),
-            "b": ("shiftB", "b", Direction.RIGHT),
-            "c": ("shiftC", "b", Direction.RIGHT),
-            "": ("goBack", "b", Direction.LEFT),
+            "a": ("shiftA", "b", Direction.R),
+            "b": ("shiftB", "b", Direction.R),
+            "c": ("shiftC", "b", Direction.R),
+            "": ("goBack", "b", Direction.L),
         },
         "shiftC": {
-            "a": ("shiftA", "c", Direction.RIGHT),
-            "b": ("shiftB", "c", Direction.RIGHT),
-            "c": ("shiftC", "c", Direction.RIGHT),
-            "": ("goBack", "c", Direction.LEFT),
+            "a": ("shiftA", "c", Direction.R),
+            "b": ("shiftB", "c", Direction.R),
+            "c": ("shiftC", "c", Direction.R),
+            "": ("goBack", "c", Direction.L),
         },
         "goBack": {
-            "a": ("goBack", "a", Direction.LEFT),
-            "b": ("goBack", "b", Direction.LEFT),
-            "c": ("goBack", "c", Direction.LEFT),
-            "X": ("findA", "c", Direction.RIGHT),
+            "a": ("goBack", "a", Direction.L),
+            "b": ("goBack", "b", Direction.L),
+            "c": ("goBack", "c", Direction.L),
+            "X": ("findA", "c", Direction.R),
         },
     }
 
