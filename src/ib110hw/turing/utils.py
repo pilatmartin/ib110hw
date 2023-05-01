@@ -1,4 +1,5 @@
 from .dtm import DTM
+from .mtm import MTM
 from ._helpers import (
     read_file,
     get_configuration,
@@ -40,6 +41,20 @@ def load_dtm_from_file(file_path: str) -> Optional[DTM]:
         rej_states=rej,
         transitions=transitions,
     )
+
+
+def load_mtm_from_file(file_path: str) -> Optional[MTM]:
+    """
+    Loads a MTM from a file if it is valid.
+    Returns None if the configuration is invalid and prints the error to stderr.
+
+    Args:
+        file_path (str): _description_
+
+    Returns:
+        Optional[MTM]: _description_
+    """
+    pass
 
 
 if __name__ == "__main__":

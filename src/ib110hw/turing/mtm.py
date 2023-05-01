@@ -1,10 +1,10 @@
 from copy import deepcopy
 from time import sleep
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple, IO
 
-from .base import BaseTuringMachine, MAX_STEPS_ERROR_MSG
-from .tape import Direction, Tape, START_SYMBOL
-from ._helpers import clear_console, close_file, mtm_config_to_md
+from base import BaseTuringMachine, MAX_STEPS_ERROR_MSG
+from tape import Direction, Tape, START_SYMBOL
+from _helpers import clear_console, close_file, mtm_config_to_md, get_step_direction
 
 Symbols = Tuple[str, ...]
 Directions = Tuple[Direction, ...]
@@ -39,13 +39,13 @@ class MTM(BaseTuringMachine):
             initial_state,
             start_symbol,
         )
-        self.transitions = transitions or {}
+        self.transitions = transitions if transitions is not None else {}
         self.tapes = tapes or [deepcopy(Tape()) for _ in range(tape_count)]
         self.tape_count = tape_count or len(tapes)
 
     def get_transition(self, state: str, read: Symbols) -> Optional[MTMRule]:
         """
-        Returns the transition based on the current current state and read symbols.
+        Returns the transition based on the current state and read symbols.
 
         Args:
             state (str): Current state.
@@ -106,6 +106,7 @@ class MTM(BaseTuringMachine):
         to_file: bool = False,
         path: str = "simulation.md",
         delay: float = 0.5,
+        step_by_step: bool = False,
     ) -> bool:
         """Simulates the machine on its current tape configuration.
 
@@ -114,57 +115,88 @@ class MTM(BaseTuringMachine):
             to_file (bool, optional): Set to True if you want to save every step to the file. Defaults to False.
             path (str, optional): Path to the .md file with the step history. Defaults to "simulation.md".
             delay (float, optional): The delay (s) between each step when printing to console. Defaults to 0.5.
+            step_by_step (bool, optional): Set to True if you want the simulation wait after each step. Defaults to False.
 
         Returns:
             bool: False if the machine rejects the word or exceeds the 'max_steps' value, True otherwise.
         """
         state: str = self.initial_state
         steps: int = 1
-        output_file = None
+        rule: Optional[MTMRule] = None
+        output_file: Optional[IO] = open(path, "w") if to_file else None
+
+        # key pressed by user when the 'step_by_step' is enabled, can be <left|right|esc>
+        pressed_key: str = "right"
+        prev_states: List[Tuple[str, List[Tape]]] = []
 
         def get_rule_string() -> str:
+            """
+            Parse the current configuration to string shown to user.
+            """
             row = self.get_transition(state, self.get_current_symbols())
             step_index = steps if row else steps - 1
             next_step = f"{state}, {self.get_current_symbols()}"
 
             return f"{step_index}. ({next_step}) -> {row}"
 
-        def print_machine_configuration() -> None:
+        def write_machine_configuration() -> None:
+            """
+            Write the configuration string to all enabled outputs.
+            """
             rule_str = get_rule_string()
 
             if output_file:
                 output_file.write(mtm_config_to_md(self.tapes, rule_str))
 
-            if to_console:
+            if to_console or step_by_step:
                 clear_console()
                 print(rule_str, "\n\n")
 
-                for i, tape in enumerate(self.tapes):
-                    print(f"Tape {i}\n{tape}")
+                for i, t in enumerate(self.tapes):
+                    print(f"Tape {i}\n{t}")
 
-                sleep(delay)
+                sleep(0 if step_by_step else delay)
 
-        # the simulation itself starts here
-        if to_file:
-            output_file = open(path, "w")
+        def go_forward() -> None:
+            nonlocal rule, steps
+            rule = self.get_transition(state, self.get_current_symbols())
+            prev_states.append((state, deepcopy(self.tapes)))
+            steps += 1
+
+        def go_back() -> None:
+            if not prev_states:
+                return
+
+            nonlocal steps, state
+            steps -= 1
+            state, self.tapes = prev_states.pop()
 
         while steps <= (self.max_steps + 1):
-            print_machine_configuration()
+            write_machine_configuration()
 
             if state in self.acc_states:
                 close_file(output_file)
                 return True
 
-            read_symbols = self.get_current_symbols()
-            rule = self.get_transition(state, read_symbols)
+            if step_by_step:
+                pressed_key = get_step_direction()
+
+            if pressed_key == "esc":
+                close_file(output_file)
+                print("Canceled the computation.")
+                return False
+
+            if pressed_key == "left":
+                go_back()
+                continue
+
+            go_forward()
 
             if not rule or rule[0] in self.rej_states:
                 close_file(output_file)
                 return False
 
-            steps += 1
             state, write, directions = rule
-
             for direction, tape, symbol in zip(directions, self.tapes, write):
                 tape.write_symbol(symbol)
                 tape.move(direction)
@@ -176,4 +208,36 @@ class MTM(BaseTuringMachine):
 
 
 if __name__ == "__main__":
-    pass
+    transitions: MTMTransitions = {
+        "init": {
+            (">", ""): ("copy", (">", ""), (Direction.RIGHT, Direction.STAY))
+        },
+        "copy": {
+            ("a", ""): ("copy", ("a", "a"), (Direction.RIGHT, Direction.RIGHT)),
+            ("b", ""): ("copy", ("b", "b"), (Direction.RIGHT, Direction.RIGHT)),
+            ("", ""): ("goToStart", ("", ""), (Direction.LEFT, Direction.STAY)),
+        },
+        "goToStart": {
+            ("a", ""): ("goToStart", ("a", ""), (Direction.LEFT, Direction.STAY)),
+            ("b", ""): ("goToStart", ("b", ""), (Direction.LEFT, Direction.STAY)),
+            (">", ""): ("check", (">", ""), (Direction.RIGHT, Direction.LEFT))
+        },
+        "check": {
+            ("a", "a"): ("check", ("a", "a"), (Direction.RIGHT, Direction.LEFT)),
+            ("b", "b"): ("check", ("b", "b"), (Direction.RIGHT, Direction.LEFT)),
+            ("", ""): ("accept", ("", ""), (Direction.STAY, Direction.STAY)),
+            ("a", "b"): ("reject", ("a", "b"), (Direction.STAY, Direction.STAY)),
+            ("b", "a"): ("reject", ("b", "a"), (Direction.STAY, Direction.STAY)),
+        }
+    }
+
+    machine: MTM = MTM(
+        states={"init", "goToEnd", "goToStart", "check", "accept", "reject"},
+        initial_state="init",
+        input_alphabet={"a", "b"},
+        acc_states={"accept"},
+        rej_states={"reject"},
+        transitions=transitions)
+
+    machine.write_to_tape("aabbabbaa")
+    print(machine.simulate(step_by_step=True))

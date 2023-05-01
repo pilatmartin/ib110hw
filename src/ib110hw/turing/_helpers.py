@@ -1,7 +1,8 @@
 from os import name, system
-from typing import TextIO, List, Tuple, Set, Optional
-from .tape import Tape, Direction
+from typing import IO, List, Tuple, Set, Optional
+from tape import Tape, Direction
 from itertools import takewhile, dropwhile
+from pynput import keyboard
 
 
 def clear_console() -> None:
@@ -11,9 +12,30 @@ def clear_console() -> None:
         system("cls")
 
 
-def close_file(file: TextIO) -> None:
+def close_file(file: IO) -> None:
     if file:
         file.close()
+
+
+# inspired by https://stackoverflow.com/a/43106497
+def get_step_direction() -> str:
+    step_direction = None
+    print("Use arrow keys [L|R] to go back or forward. Esc to exit.")
+
+    def on_press(key):
+        nonlocal step_direction
+        try:
+            if key.name in ["left", "right", "esc"]:
+                step_direction = key.name
+                return False
+        except AttributeError:
+            # ignore other keys
+            pass
+
+    listener = keyboard.Listener(on_press=on_press)
+    listener.start()
+    listener.join()
+    return step_direction
 
 
 def tape_to_md(tape: Tape, index: int = None) -> str:
