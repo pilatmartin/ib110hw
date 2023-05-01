@@ -10,6 +10,11 @@ class Direction(Enum):
     STAY = 0
     RIGHT = 1
 
+    # shorthand aliases
+    L = -1
+    S = 0
+    R = 1
+
     def __repr__(self):
         return self.name
 
