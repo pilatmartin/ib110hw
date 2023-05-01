@@ -16,7 +16,7 @@ def automaton_to_graphviz(automaton: Union[NFA, DFA], path: str) -> None:
         file.write("digraph G {\n")
         file.write('\trankdir="LR"\n')
         file.write('\t__init__[shape=none label=""]\n')
-        file.write(f"\t__init__ -> {automaton.initial_state}\n")
+        file.write(f"\t__init__ -> \"{automaton.initial_state}\"\n")
 
         for s_from in automaton.states:
             for s_to in automaton.states:
@@ -27,13 +27,13 @@ def automaton_to_graphviz(automaton: Union[NFA, DFA], path: str) -> None:
 
                 label = ",".join(label_symbols)
                 if label:
-                    file.write(f'\t{s_from} -> {s_to}[label="{label}"]\n')
+                    file.write(f'\t\"{s_from}\" -> \"{s_to}\"[label="{label}"]\n')
 
         for non_fin_state in automaton.states.difference(automaton.final_states):
-            file.write(f"\t{non_fin_state} [shape=circle]\n")
+            file.write(f"\t\"{non_fin_state}\" [shape=circle]\n")
 
         for fin_state in automaton.final_states:
-            file.write(f"\t{fin_state} [shape=doublecircle]\n")
+            file.write(f"\t\"{fin_state}\" [shape=doublecircle]\n")
 
         file.write("}\n")
 
