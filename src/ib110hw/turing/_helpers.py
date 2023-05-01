@@ -1,8 +1,9 @@
 from os import name, system
-from typing import IO, List, Tuple, Set, Optional
+from typing import IO, List, Tuple, Set, Optional, Callable
 from tape import Tape, Direction
 from itertools import takewhile, dropwhile
 from pynput import keyboard
+import re
 
 
 def clear_console() -> None:
@@ -81,7 +82,7 @@ def parse_direction(direction: str) -> Optional[Direction]:
     return Direction(directions.get(direction, 0))
 
 
-def get_configuration(
+def get_dtm_configuration(
     definition: List[str],
 ) -> Tuple[str, Set[str], Set[str], Set[str]]:
     config = list(takewhile(lambda l: l.strip() != "---", definition))[:-1]
@@ -98,7 +99,22 @@ def get_configuration(
         elif line.startswith("alphabet"):
             abc = {*line.split()[1:]}
 
-    return (init, acc or set(), rej or set(), abc or set())
+    return init, acc or set(), rej or set(), abc or set()
+
+
+def get_mtm_configuration(
+    definition: List[str],
+) -> Tuple[str, Set[str], Set[str], Set[str], int]:
+    config = next(
+        (
+            idk
+            for idk in list(takewhile(lambda l: l.strip() != "---", definition))
+            if idk.strip().startswith("tapes")
+        )
+    )
+    tape_count = int(config.split()[1])
+
+    return (*get_dtm_configuration(definition), tape_count)
 
 
 def get_dtm_transition_function(definition: List[str]):
@@ -119,7 +135,7 @@ def get_dtm_transition_function(definition: List[str]):
     return function
 
 
-def validate_configuration(definition: List[str]) -> Optional[str]:
+def validate_dtm_configuration(definition: List[str]) -> Optional[str]:
     if all(l.strip() != "---" for l in definition):
         return "The divider is missing."
 
@@ -134,8 +150,22 @@ def validate_configuration(definition: List[str]) -> Optional[str]:
             return "Invalid initial state"
 
 
+def validate_mtm_configuration(definition: List[str]) -> Optional[str]:
+    err = validate_dtm_configuration(definition)
+    if err:
+        return err
+
+    tapes_line = [
+        l for l in definition if re.match(r"tapes ([2-9]|[1-9]\d+)", l.strip())
+    ]
+    if len(tapes_line) > 1:
+        return "Duplicate definition of tape count."
+
+    if len(tapes_line) == 0:
+        return "Missing or invalid definition of tape count."
+
+
 def validate_dtm_transitions(definition: List[str]) -> Optional[str]:
-    lines = list(dropwhile(lambda l: l != "---", definition))[1:]
     get_part = lambda l, i: l.split("->")[i]
     # checks the length of arguments on the left side
     valid_current = lambda l: len(get_part(l, 0).split()) == 2
@@ -148,29 +178,102 @@ def validate_dtm_transitions(definition: List[str]) -> Optional[str]:
     # checks the direction
     valid_dir = lambda l: get_part(l, 1).split()[-1] in ["L", "R", "S"]
 
-    rule = next((l for l in lines if "->" not in l), None)
-    if rule:
-        return f"Missing arrow in rule:\n{rule}."
+    return validate_transitions(
+        definition,
+        valid_current,
+        valid_read,
+        valid_next,
+        valid_write,
+        valid_dir,
+    )
 
-    rule = next((l for l in lines if not valid_current(l)), None)
-    if rule:
-        return f"Invalid combination of state and read symbol in rule:\n{rule}"
 
-    rule = next((l for l in lines if not valid_read(l)), None)
-    if rule:
-        return f"Invalid read symbol length (> 1) in rule\n{rule}"
+def validate_mtm_transitions(definition: List[str]) -> Optional[str]:
+    get_part = lambda l, i: l.split("->")[i]
+    # checks the length of arguments on the left side
+    valid_current = lambda l: re.match(r"^\w+ \([^)]+\)", get_part(l, 0)) is not None
+    # checks the length of the read symbols
+    valid_read = (
+        lambda l: re.match(r"(. )+.", get_part(l, 0).split(" (")[1][:-1]) is not None
+    )
+    # checks the length of arguments on the right side
+    valid_next = lambda l: len(get_part(l, 1).split(" (")) == 3
+    # checks the length of the write symbols
+    valid_write = (
+        lambda l: bool(re.match(r"^(. )+.$", get_part(l, 1).split(" (")[1][:-1])) == 1
+    )
+    # checks the direction
+    valid_dir = lambda l: set(get_part(l, 1).split(" (")[-1][:-1].split()).issubset(
+        ["L", "R", "S"]
+    )
 
-    rule = next((l for l in lines if not valid_next(l)), None)
-    if rule:
-        return f"The next state, write symbol or direction is missing in rule:\n{rule}"
+    return validate_transitions(
+        definition,
+        valid_current,
+        valid_read,
+        valid_next,
+        valid_write,
+        valid_dir,
+    )
 
-    rule = next((l for l in lines if not valid_write(l)), None)
-    if rule:
-        return f"Invalid write symbol length (> 1) in rule\n{rule}"
 
-    rule = next((l for l in lines if not valid_dir(l)), None)
-    if rule:
-        return f"Invalid direction in rule:\n{rule}"
+def validate_transitions(
+    definition: List[str],
+    valid_current: Callable[[str], bool],
+    valid_read: Callable[[str], bool],
+    valid_next: Callable[[str], bool],
+    valid_write: Callable[[str], bool],
+    valid_dir: Callable[[str], bool],
+) -> Optional[str]:
+
+    for line in list(dropwhile(lambda l: l != "---", definition))[1:]:
+        if "->" not in line:
+            return f"Missing arrow in rule:\n{line}."
+
+        if not valid_current(line):
+            return f"Invalid combination of state and read symbol in rule:\n{line}"
+
+        if not valid_read(line):
+            return f"Invalid read symbol length (> 1) in rule:\n{line}"
+
+        if not valid_next(line):
+            return (
+                f"The next state, write symbol or direction is missing in rule:\n{line}"
+            )
+
+        if not valid_write(line):
+            return f"Invalid write symbol length (> 1) in rule:\n{line}"
+
+        if not valid_dir(line):
+            return f"Invalid direction in rule:\n{line}"
+
+
+def get_mtm_transition_function(definition: List[str]):
+    function_lines = list(dropwhile(lambda l: l != "---", definition))[1:]
+    function = {}
+
+    def clean(group: str) -> List[str]:
+        """Removes brackets and spaces + returns as list."""
+        return re.sub(r"[()]", "", group).split()
+
+    def underscore_to_space(group: List[str]) -> List[str]:
+        return [s if s != "_" else "" for s in group]
+
+    for rule in function_lines:
+        left, right = rule.split("->")
+        curr_state, reads = left.split(" ", 1)
+        next_state, writes, directions = right.split("(")
+
+        if not function.get(curr_state):
+            function[curr_state] = {}
+
+        function[curr_state][tuple(underscore_to_space(clean(reads)))] = (
+            next_state.strip(),
+            tuple(underscore_to_space(clean(writes))),
+            tuple([parse_direction(d) for d in clean(directions)]),
+        )
+
+    return function
 
 
 if __name__ == "__main__":
