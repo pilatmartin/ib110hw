@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="ib110hw",
-    version="0.1.4",
+    version="0.1.5",
     author="Martin Pilát",
     author_email="8pilatmartin8@gmail.com",
     long_description=long_description,
@@ -15,6 +15,9 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
+    install_requires={
+        "pynput",
+    },
     package_dir={"": "src"},
     packages=setuptools.find_packages(where="src"),
     url="https://github.com/pilatmartin/ib110hw",
