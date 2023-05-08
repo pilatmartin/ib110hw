@@ -2,9 +2,9 @@ from copy import deepcopy
 from time import sleep
 from typing import Dict, Optional, Set, Tuple, List, IO
 
-from base import BaseTuringMachine, MAX_STEPS_ERROR_MSG
-from tape import Direction, Tape, START_SYMBOL
-from _helpers import dtm_config_to_md, clear_console, close_file, get_step_direction
+from .base import BaseTuringMachine, MAX_STEPS_ERROR_MSG
+from .tape import Direction, Tape, START_SYMBOL
+from ._helpers import dtm_config_to_md, clear_console, close_file, get_step_direction
 
 DTMRule = Tuple[str, str, Direction]
 DTMRules = Dict[str, DTMRule]
@@ -188,57 +188,4 @@ class DTM(BaseTuringMachine):
 
 
 if __name__ == "__main__":
-    transitions = {
-        "init": {
-            ">": ("findA", ">", Direction.R),
-        },
-        "findA": {
-            "a": ("findB", "a", Direction.R),
-            "b": ("findA", "b", Direction.R),
-            "c": ("findA", "c", Direction.R),
-        },
-        "findB": {
-            "a": ("findB", "a", Direction.R),
-            "b": ("markC", "b", Direction.R),
-            "c": ("findA", "c", Direction.R),
-        },
-        "markC": {
-            "a": ("shiftA", "X", Direction.R),
-            "b": ("shiftB", "X", Direction.R),
-            "c": ("shiftC", "X", Direction.R),
-            "": ("findA", "c", Direction.R),
-        },
-        "shiftA": {
-            "a": ("shiftA", "a", Direction.R),
-            "b": ("shiftB", "a", Direction.R),
-            "c": ("shiftC", "a", Direction.R),
-            "": ("goBack", "a", Direction.L),
-        },
-        "shiftB": {
-            "a": ("shiftA", "b", Direction.R),
-            "b": ("shiftB", "b", Direction.R),
-            "c": ("shiftC", "b", Direction.R),
-            "": ("goBack", "b", Direction.L),
-        },
-        "shiftC": {
-            "a": ("shiftA", "c", Direction.R),
-            "b": ("shiftB", "c", Direction.R),
-            "c": ("shiftC", "c", Direction.R),
-            "": ("goBack", "c", Direction.L),
-        },
-        "goBack": {
-            "a": ("goBack", "a", Direction.L),
-            "b": ("goBack", "b", Direction.L),
-            "c": ("goBack", "c", Direction.L),
-            "X": ("findA", "c", Direction.R),
-        },
-    }
-
-    machine = DTM(
-        states={*transitions.keys()},
-        input_alphabet={"a", "b", "c"},
-        transitions=transitions,
-    )
-
-    machine.write_to_tape("abba")
-    print(machine.simulate(step_by_step=True))
+    pass

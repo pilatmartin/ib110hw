@@ -1,6 +1,6 @@
 from os import name, system
 from typing import IO, List, Tuple, Set, Optional, Callable
-from tape import Tape, Direction
+from .tape import Tape, Direction
 from itertools import takewhile, dropwhile
 from pynput import keyboard
 import re
@@ -270,7 +270,7 @@ def get_mtm_transition_function(definition: List[str]):
         function[curr_state][tuple(underscore_to_space(clean(reads)))] = (
             next_state.strip(),
             tuple(underscore_to_space(clean(writes))),
-            tuple([parse_direction(d) for d in clean(directions)]),
+            tuple(parse_direction(d) for d in clean(directions)),
         )
 
     return function

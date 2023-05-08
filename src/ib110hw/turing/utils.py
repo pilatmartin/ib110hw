@@ -1,6 +1,6 @@
-from dtm import DTM
-from mtm import MTM
-from _helpers import (
+from .dtm import DTM
+from .mtm import MTM
+from ._helpers import (
     read_file,
     get_dtm_configuration,
     get_mtm_configuration,
@@ -15,7 +15,7 @@ from typing import Optional
 from sys import stderr
 
 
-def load_dtm_from_file(file_path: str) -> Optional[DTM]:
+def import_dtm(file_path: str) -> Optional[DTM]:
     """
     Loads a DTM from a file if it is valid.
     Returns None if the configuration is invalid and prints the error to stderr.
@@ -47,7 +47,7 @@ def load_dtm_from_file(file_path: str) -> Optional[DTM]:
     )
 
 
-def load_mtm_from_file(file_path: str) -> Optional[MTM]:
+def import_mtm(file_path: str) -> Optional[MTM]:
     """
     Loads a MTM from a file if it is valid.
     Returns None if the configuration is invalid and prints the error to stderr.
@@ -81,6 +81,4 @@ def load_mtm_from_file(file_path: str) -> Optional[MTM]:
 
 
 if __name__ == "__main__":
-    machine = load_dtm_from_file("./test.txt")
-    machine.write_to_tape("abbabba")
-    machine.simulate(step_by_step=True)
+    pass

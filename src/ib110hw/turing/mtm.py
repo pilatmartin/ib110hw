@@ -2,9 +2,9 @@ from copy import deepcopy
 from time import sleep
 from typing import Dict, List, Optional, Set, Tuple, IO
 
-from base import BaseTuringMachine, MAX_STEPS_ERROR_MSG
-from tape import Direction, Tape, START_SYMBOL
-from _helpers import clear_console, close_file, mtm_config_to_md, get_step_direction
+from .base import BaseTuringMachine, MAX_STEPS_ERROR_MSG
+from .tape import Direction, Tape, START_SYMBOL
+from ._helpers import clear_console, close_file, mtm_config_to_md, get_step_direction
 
 Symbols = Tuple[str, ...]
 Directions = Tuple[Direction, ...]
@@ -208,36 +208,4 @@ class MTM(BaseTuringMachine):
 
 
 if __name__ == "__main__":
-    transitions: MTMTransitions = {
-        "init": {
-            (">", ""): ("copy", (">", ""), (Direction.RIGHT, Direction.STAY))
-        },
-        "copy": {
-            ("a", ""): ("copy", ("a", "a"), (Direction.RIGHT, Direction.RIGHT)),
-            ("b", ""): ("copy", ("b", "b"), (Direction.RIGHT, Direction.RIGHT)),
-            ("", ""): ("goToStart", ("", ""), (Direction.LEFT, Direction.STAY)),
-        },
-        "goToStart": {
-            ("a", ""): ("goToStart", ("a", ""), (Direction.LEFT, Direction.STAY)),
-            ("b", ""): ("goToStart", ("b", ""), (Direction.LEFT, Direction.STAY)),
-            (">", ""): ("check", (">", ""), (Direction.RIGHT, Direction.LEFT))
-        },
-        "check": {
-            ("a", "a"): ("check", ("a", "a"), (Direction.RIGHT, Direction.LEFT)),
-            ("b", "b"): ("check", ("b", "b"), (Direction.RIGHT, Direction.LEFT)),
-            ("", ""): ("accept", ("", ""), (Direction.STAY, Direction.STAY)),
-            ("a", "b"): ("reject", ("a", "b"), (Direction.STAY, Direction.STAY)),
-            ("b", "a"): ("reject", ("b", "a"), (Direction.STAY, Direction.STAY)),
-        }
-    }
-
-    machine: MTM = MTM(
-        states={"init", "goToEnd", "goToStart", "check", "accept", "reject"},
-        initial_state="init",
-        input_alphabet={"a", "b"},
-        acc_state="accept",
-        rej_state="reject",
-        transitions=transitions)
-
-    machine.write_to_tape("aabbabbaa")
-    print(machine.simulate(step_by_step=True))
+    pass
