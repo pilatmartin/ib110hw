@@ -21,7 +21,7 @@ def close_file(file: IO) -> None:
 # inspired by https://stackoverflow.com/a/43106497
 def get_step_direction() -> str:
     step_direction = None
-    print("Use arrow keys [L|R] to go back or forward. Esc to exit.")
+    print("Use arrow keys [L|R] to go back or forward. Press ESC to exit.")
 
     def on_press(key):
         nonlocal step_direction
@@ -93,9 +93,9 @@ def get_dtm_configuration(
         if line.startswith("init"):
             init = line.split()[1]
         elif line.startswith("acc"):
-            acc = {*line.split()[1:]}
+            acc = line.split()[1]
         elif line.startswith("rej"):
-            rej = {*line.split()[1:]}
+            rej = line.split()[1]
         elif line.startswith("alphabet"):
             alphabet = {*line.split()[1:]}
 
@@ -130,6 +130,7 @@ def get_dtm_transition_function(definition: List[str]):
             function[curr_state] = {}
 
         read = read if read != "_" else ""
+        write = write if write != "_" else ""
         function[curr_state][read] = (next_state, write, parse_direction(direction))
 
     return function
@@ -139,15 +140,29 @@ def validate_dtm_configuration(definition: List[str]) -> Optional[str]:
     if all(l.strip() != "---" for l in definition):
         return "The divider is missing."
 
-    config = list(takewhile(lambda l: l != "---", definition))[:-1]
+    config = list(takewhile(lambda l: l != "---", definition))
 
     if not any((l.startswith("init") for l in config)):
         return "Specifying the initial state is mandatory."
 
     init_line = next((l for l in config if l.startswith("init")), None)
-    if init_line:
-        if len(init_line.split()) != 2:
-            return "Invalid initial state"
+    if init_line and len(init_line.split()) != 2:
+        return "Invalid initial state."
+
+    acc_line = next((l for l in config if l.startswith("acc")), None)
+    if acc_line and len(acc_line.split()) != 2:
+        return "Invalid accepting state."
+
+    rej_line = next((l for l in config if l.startswith("rej")), None)
+    if rej_line and len(rej_line.split()) != 2:
+        return "Invalid rejecting state."
+
+    alphabet_line = next((l for l in config if l.startswith("alphabet")), None)
+    if not alphabet_line:
+        return "The alphabet definition is missing."
+
+    if len(alphabet_line.split()) < 2 or any(len(s) > 1 for s in alphabet_line.split()[1:]):
+        return "Invalid alphabet."
 
 
 def validate_mtm_configuration(definition: List[str]) -> Optional[str]:
@@ -161,20 +176,25 @@ def validate_mtm_configuration(definition: List[str]) -> Optional[str]:
     if len(tapes_line) > 1:
         return "Duplicate definition of tape count."
 
-    if len(tapes_line) == 0:
+    if not tapes_line:
         return "Missing or invalid definition of tape count."
 
 
 def validate_dtm_transitions(definition: List[str]) -> Optional[str]:
     get_part = lambda l, i: l.split("->")[i]
+    
     # checks the length of arguments on the left side
     valid_current = lambda l: len(get_part(l, 0).split()) == 2
+    
     # checks the length of the read symbol
     valid_read = lambda l: len(get_part(l, 0).split()[1]) == 1
+    
     # checks the length of arguments on the right side
     valid_next = lambda l: len(get_part(l, 1).split()) == 3
+    
     # checks the length of the write symbol
     valid_write = lambda l: len(get_part(l, 1).split()[1]) == 1
+    
     # checks the direction
     valid_dir = lambda l: get_part(l, 1).split()[-1] in ["L", "R", "S"]
 
@@ -192,16 +212,19 @@ def validate_mtm_transitions(definition: List[str]) -> Optional[str]:
     get_part = lambda l, i: l.split("->")[i]
     # checks the length of arguments on the left side
     valid_current = lambda l: re.match(r"^\w+ \([^)]+\)", get_part(l, 0)) is not None
+    
     # checks the length of the read symbols
     valid_read = (
         lambda l: re.match(r"(. )+.", get_part(l, 0).split(" (")[1][:-1]) is not None
     )
     # checks the length of arguments on the right side
-    valid_next = lambda l: len(get_part(l, 1).split(" (")) == 3
+    valid_next = lambda l: len(list(filter(None, get_part(l, 1).split(" (")))) == 3
+    
     # checks the length of the write symbols
     valid_write = (
         lambda l: bool(re.match(r"^(. )+.$", get_part(l, 1).split(" (")[1][:-1])) == 1
     )
+    
     # checks the direction
     valid_dir = lambda l: set(get_part(l, 1).split(" (")[-1][:-1].split()).issubset(
         ["L", "R", "S"]

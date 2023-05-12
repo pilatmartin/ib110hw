@@ -1,0 +1,37 @@
+# name of the initial state
+init init
+
+# name of the accepting state
+acc acc
+
+# name of the rejecting state
+rej rej
+
+# alphabet characters without start_symbol
+alphabet a b
+
+---
+
+# current read -> next write direction(L, R, S)
+init    > -> mark   > R
+mark    a -> foundA X R
+mark    b -> foundB X R
+mark    X -> acc    X S
+mark    _ -> acc    _ S
+foundA  a -> foundA a R
+foundA  b -> foundA b R
+foundA  X -> checkA X L
+foundA  _ -> checkA _ L
+checkA  a -> back   X L
+checkA  b -> acc    b S
+checkA  X -> rej    X S
+foundB  a -> foundB a R
+foundB  b -> foundB b R
+foundB  X -> checkB X L
+foundB  _ -> checkB _ L
+checkB  a -> reject a S
+checkB  b -> reject X L
+checkB  X -> reject X S
+back    a -> back   a L
+back    b -> back   b L
+back    X -> mark   X R

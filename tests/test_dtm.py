@@ -1,10 +1,12 @@
-from hypothesis import given
+from hypothesis import given, settings
 from sys import path
 from generation import acc_palindromes, rej_palindromes
 
 path.append("../src/ib110hw")
 from turing.dtm import DTM
 from turing.tape import Direction
+from turing.utils import import_dtm
+import pathlib
 
 PALINDROME_MACHINE: DTM = DTM(
     states={
@@ -65,6 +67,7 @@ PALINDROME_MACHINE.max_steps = 10000
 
 
 @given(acc_palindromes())
+@settings(deadline=None)
 def test_simulate_acc(input_str: str):
     PALINDROME_MACHINE.write_to_tape(input_str)
     assert PALINDROME_MACHINE.simulate(to_console=False)
@@ -72,7 +75,48 @@ def test_simulate_acc(input_str: str):
 
 
 @given(rej_palindromes())
+@settings(deadline=None)
 def test_simulate_rej(input_str: str):
     PALINDROME_MACHINE.write_to_tape(input_str)
     assert not PALINDROME_MACHINE.simulate(to_console=False)
     PALINDROME_MACHINE.clear_tape()
+
+@given(acc_palindromes())
+@settings(deadline=None)
+def test_import_acc(input_str: str):
+    machine = import_dtm("inputs/dtm_input")
+    machine.max_steps = 10000
+    machine.write_to_tape(input_str)
+    assert machine.simulate(to_console=False)
+
+@given(rej_palindromes())
+@settings(deadline=None)
+def test_import_rej(input_str: str):
+    machine = import_dtm("inputs/dtm_input")
+    machine.max_steps = 10000
+    machine.write_to_tape(input_str)
+    assert not machine.simulate(to_console=False)
+
+def test_import_invalid_init():
+    assert not import_dtm("./inputs/dtm_input_invalid_init")
+
+def test_import_invalid_acc():
+    assert not import_dtm("./inputs/dtm_input_invalid_acc")
+
+def test_import_invalid_rej():
+    assert not import_dtm("./inputs/dtm_input_invalid_rej")
+
+def test_import_invalid_alphabet():
+    assert not import_dtm("./inputs/dtm_input_invalid_alphabet")
+
+def test_import_invalid_transitions_arrow():
+    assert not import_dtm("./inputs/dtm_input_invalid_transitions_arrow")
+
+def test_import_invalid_transitions_direction():
+    assert not import_dtm("./inputs/dtm_input_invalid_transitions_direction")
+
+def test_import_invalid_transitions_state():
+    assert not import_dtm("./inputs/dtm_input_invalid_transitions_state")
+
+def test_import_invalid_transitions_next():
+    assert not import_dtm("./inputs/dtm_input_invalid_transitions_next")

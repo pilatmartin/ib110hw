@@ -21,7 +21,7 @@ class DTM(BaseTuringMachine):
         states: Set[str] = None,
         input_alphabet: Set[str] = None,
         acc_state: str = "accept",
-        rej_states: str = "reject",
+        rej_state: str = "reject",
         transitions: DTMTransitions = None,
         tape: Tape = None,
         initial_state: str = "init",
@@ -31,7 +31,7 @@ class DTM(BaseTuringMachine):
             states,
             input_alphabet,
             acc_state,
-            rej_states,
+            rej_state,
             initial_state,
             start_symbol,
         )

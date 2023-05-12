@@ -1,0 +1,29 @@
+init init
+acc
+rej rej
+alphabet a b
+
+---
+
+init    > -> mark   > R
+mark    a -> foundA X R
+mark    b -> foundB X R
+mark    X -> acc    X S
+mark    _->  acc    _ S
+foundA  a -> foundA a R
+foundA  b -> foundA b R
+foundA  X -> checkA X L
+foundA  _->  checkA _ L
+checkA  a -> back   X L
+checkA  b -> rej    b S
+checkA  X -> rej    X S
+foundB  a -> foundB a R
+foundB  b -> foundB b R
+foundB  X -> checkB X L
+foundB  _ -> checkB _ L
+checkB  a -> rej    a S
+checkB  b -> back   X L
+checkB  X -> rej    X S
+back    a -> back   a L
+back    b -> back   b L
+back    X -> mark   X R

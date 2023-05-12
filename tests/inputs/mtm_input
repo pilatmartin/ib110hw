@@ -1,0 +1,20 @@
+init init
+acc acc
+rej rej
+alphabet a b c
+tapes 2
+
+---
+
+init (> _)      -> copy (> _) (R S)
+copy (a _)      -> copy (a a) (R R)
+copy (b _)      -> copy (b b) (R R)
+copy (_ _)      -> goToStart (_ _) (L S)
+goToStart (a _) -> goToStart (a _) (L S)
+goToStart (b _) -> goToStart (b _) (L S)
+goToStart (> _) -> check (> _) (R L)
+check (a a)     -> check (a a) (R L)
+check (b b)     -> check (b b) (R L)
+check (_ _)     -> acc (_ _) (S S)
+check (a b)     -> rej (a b) (S S)
+check (b a)     -> rej (b a) (S S)

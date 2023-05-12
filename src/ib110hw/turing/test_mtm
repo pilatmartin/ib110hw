@@ -1,0 +1,31 @@
+# name of the initial state
+init init
+
+# name of the accepting state
+acc acc
+
+# name of the rejecting state
+rej rej
+
+# alphabet characters without start_symbol
+alphabet a b c
+
+# the amount of tapes (>= 2)
+tapes 2
+
+---
+
+# current (reads) -> next [writes] [directions]([L(eft), R(ight), S(tay)])
+# ! _ (underscore) is used to depict <space> !
+init (> _)      -> copy (> _) (R S)
+copy (a _)      -> copy (a a) (R R)
+copy (b _)      -> copy (b b) (R R)
+copy (_ _)      -> goToStart (_ _) (L S)
+goToStart (a _) -> goToStart (a _) (L S)
+goToStart (b _) -> goToStart (b _) (L S)
+goToStart (> _) -> check (> _) (R L)
+check (a a)     -> check (a a) (R L)
+check (b b)     -> check (b b) (R L)
+check (_ _)     -> acc (_ _) (S S)
+check (a b)     -> rej (a b) (S S)
+check (b a)     -> rej (b a) (S S)
