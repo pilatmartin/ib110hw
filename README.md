@@ -127,9 +127,9 @@ automaton.get_symbols_between_states("s1", "s3") # returns set()
 ```python
 # returns True if the given string is accepted by the automaton, False otherwise
 # IMPORTANT: the automaton needs to be valid (see below) to be able to test 
-automaton.is_accepted("11") # True
-automaton.is_accepted("00") # True
-automaton.is_accepted("10") # False
+automaton.is_accepted("11") # False
+automaton.is_accepted("00") # False
+automaton.is_accepted("10") # True
 ```
 
 ```python
@@ -256,8 +256,8 @@ dfa_showcase.remove_transition("s1", "0")
 [![DFA object with removed transition](https://mermaid.ink/img/pako:eNpdkT1rwzAQhv-KOAjYYIM_FxUyZUyWZKw7COvSCH_IyPJgQv57L3KlJtWk59Hx6ri7Q6slAodvI6YbO56bkdGZsyiaszj-pZwoD1QQFYFKojJQRVQFqiPCOn6yz_1kXyxN95TpswlzZwqfH0z5YjJnav_rsyZ5c7vdFrbJyjcUTPli8rew-n-Y87Nde6SO2VX1faon0Sq78iyhB6M7_DMfkMCAZhBK0iDvLgDsDQdsgNNVCtM10IwPqhOL1Zd1bIFbs2ACyySFxYMSNP8B-FX0M1mUympz2jbjFvT4AUZlcck?type=png)](https://mermaid.live/edit#pako:eNpdkT1rwzAQhv-KOAjYYIM_FxUyZUyWZKw7COvSCH_IyPJgQv57L3KlJtWk59Hx6ri7Q6slAodvI6YbO56bkdGZsyiaszj-pZwoD1QQFYFKojJQRVQFqiPCOn6yz_1kXyxN95TpswlzZwqfH0z5YjJnav_rsyZ5c7vdFrbJyjcUTPli8rew-n-Y87Nde6SO2VX1faon0Sq78iyhB6M7_DMfkMCAZhBK0iDvLgDsDQdsgNNVCtM10IwPqhOL1Zd1bIFbs2ACyySFxYMSNP8B-FX0M1mUympz2jbjFvT4AUZlcck)
 
 ```python
-# removes the state s4 and every transition associated with it
-dfa_showcase.remove_state("s4")
+# removes the state s3 and every transition associated with it
+dfa_showcase.remove_state("s3")
 ```
 
 </br>
