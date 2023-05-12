@@ -257,7 +257,7 @@ dfa_showcase.remove_transition("s1", "0")
 
 ```python
 # removes the state s3 and every transition associated with it
-dfa_showcase.remove_state("s3")
+dfa_showcase.remove_state("s")
 ```
 
 </br>
@@ -558,12 +558,12 @@ back    X -> mark   X R
 
 ```
 
-The file above can then be simply loaded using the `load_dtm_from_file(...)`:
+The file above can then be simply loaded using the `import_dtm(...)`:
 
 ```python
-from ib110hw.turing.utils import load_dtm_from_file
+from ib110hw.turing.utils import import_dtm
 
-machine = load_dtm_from_file("./dtm_file")
+machine = import_dtm("./dtm_file")
 ```
 
 ## Multi-tape Turing Machine (MTM)
@@ -662,12 +662,12 @@ check       (b a) -> rej          (b a) (S S)
 
 ```
 
-The file above can then be simply loaded using the `load_dtm_from_file(...)`:
+The file above can then be simply loaded using the `import_mtm(...)`:
 
 ```python
-from ib110hw.turing.utils import load_mtm_from_file
+from ib110hw.turing.utils import import_mtm
 
-machine = load_mtm_from_file("./mtm_file")
+machine = import_mtm("./mtm_file")
 ```
 
 # DTM and MTM Simulation
