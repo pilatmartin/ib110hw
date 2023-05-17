@@ -40,7 +40,7 @@ class MTM(BaseTuringMachine):
             start_symbol,
         )
         self.transitions = transitions if transitions is not None else {}
-        self.tapes = tapes or [deepcopy(Tape()) for _ in range(tape_count)]
+        self.tapes = tapes or [Tape() for _ in range(tape_count)]
         self.tape_count = tape_count or len(tapes)
 
     def get_transition(self, state: str, read: Symbols) -> Optional[MTMRule]:

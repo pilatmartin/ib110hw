@@ -488,8 +488,8 @@ transitions: DTMTransitions = {
 machine: DTM = DTM(
     states={"init", "mark", "gotoEndA", "checkA", "gotoEndB", "checkB", "accept", "reject"},
     input_alphabet={"a", "b"},
-    acc_states="accept",
-    rej_states="reject",
+    acc_state="accept",
+    rej_state="reject",
     initial_state="init",
     transitions=transitions
 )
@@ -578,7 +578,7 @@ from ib110hw.turing.tape import Direction
 
 transitions: MTMTransitions = {
     "init": {
-        (">", ""): ("copy", (">", ""), (Direction.R, Direction.S))
+        (">", ""): ("copy", (">", ">"), (Direction.R, Direction.R))
     },
     "copy": {
         ("a", ""): ("copy", ("a", "a"), (Direction.R, Direction.R)),
@@ -593,7 +593,7 @@ transitions: MTMTransitions = {
     "check": {
         ("a", "a"): ("check", ("a", "a"), (Direction.R, Direction.L)),
         ("b", "b"): ("check", ("b", "b"), (Direction.R, Direction.L)),
-        ("", ""): ("accept", ("", ""), (Direction.S, Direction.S)),
+        ("", ">"): ("accept", ("", ">"), (Direction.S, Direction.S)),
         ("a", "b"): ("reject", ("a", "b"), (Direction.S, Direction.S)),
         ("b", "a"): ("reject", ("b", "a"), (Direction.S, Direction.S)),
     }
@@ -603,8 +603,8 @@ machine: MTM = MTM(
     states={"init", "goToEnd", "goToStart", "check", "accept", "reject"},
     initial_state="init",
     input_alphabet={"a", "b"},
-    acc_states="accept",
-    rej_states="reject",
+    acc_state="accept",
+    rej_state="reject",
     transitions=transitions)
 
 machine.write_to_tape("aabbabbaa")
